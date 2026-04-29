@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Mobile Drag Fix UI</title>
+<title>No Crop Landscape UI</title>
 
 <style>
   * {
@@ -20,11 +20,16 @@
     height: 100vh;
     position: relative;
 
-    background-image: url("bg.jpg"); /* 👈 your image */
-    background-size: contain;
+    background-image: url("bg.jpg"); /* your landscape image */
+    background-size: contain;  /* ❗ always no crop */
     background-position: center;
     background-repeat: no-repeat;
     background-color: black;
+  }
+
+  /* fullscreen mode (visual feel only) */
+  #container.fs-mode {
+    transform: scale(1.03);
   }
 
   /* ===== BUTTONS ===== */
@@ -49,7 +54,6 @@
 
     font-size: clamp(10px, 1.2vw, 16px);
 
-    /* 🔥 IMPORTANT for mobile drag */
     touch-action: none;
   }
 
@@ -113,7 +117,7 @@ const container = document.getElementById("container");
 const buttons = document.querySelectorAll(".dragBtn");
 const fsBtn = document.getElementById("fsBtn");
 
-/* ================= FULLSCREEN ================= */
+/* ================= FULLSCREEN TOGGLE ================= */
 function isFullScreen() {
   return document.fullscreenElement ||
          document.webkitFullscreenElement ||
@@ -121,25 +125,24 @@ function isFullScreen() {
 }
 
 function enterFullScreen() {
-  const elem = document.documentElement;
-
-  if (elem.requestFullscreen) elem.requestFullscreen();
-  else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
-  else if (elem.msRequestFullscreen) elem.msRequestFullscreen();
+  document.documentElement.requestFullscreen?.();
 }
 
 function exitFullScreen() {
-  if (document.exitFullscreen) document.exitFullscreen();
-  else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
-  else if (document.msExitFullscreen) document.msExitFullscreen();
+  document.exitFullscreen?.();
 }
 
 fsBtn.addEventListener("click", () => {
-  if (isFullScreen()) exitFullScreen();
-  else enterFullScreen();
+  container.classList.toggle("fs-mode");
+
+  if (isFullScreen()) {
+    exitFullScreen();
+  } else {
+    enterFullScreen();
+  }
 });
 
-/* ================= DRAG (MOUSE + TOUCH FIXED) ================= */
+/* ================= DRAG ================= */
 buttons.forEach(btn => {
   const text = btn.querySelector("span");
 
@@ -158,7 +161,6 @@ buttons.forEach(btn => {
     offsetY = y - rect.top;
 
     btn.style.cursor = "grabbing";
-
     if (e) e.preventDefault();
   }
 
@@ -170,11 +172,8 @@ buttons.forEach(btn => {
     let posX = x - rect.left - offsetX;
     let posY = y - rect.top - offsetY;
 
-    let percentX = (posX / rect.width) * 100;
-    let percentY = (posY / rect.height) * 100;
-
-    btn.style.left = percentX + "%";
-    btn.style.top = percentY + "%";
+    btn.style.left = (posX / rect.width) * 100 + "%";
+    btn.style.top = (posY / rect.height) * 100 + "%";
   }
 
   function stopDrag() {
@@ -182,31 +181,25 @@ buttons.forEach(btn => {
     btn.style.cursor = "grab";
   }
 
-  /* ===== MOUSE ===== */
-  btn.addEventListener("mousedown", (e) => {
-    startDrag(e.clientX, e.clientY, e);
-  });
-
-  document.addEventListener("mousemove", (e) => {
-    move(e.clientX, e.clientY);
-  });
-
+  // mouse
+  btn.addEventListener("mousedown", e => startDrag(e.clientX, e.clientY, e));
+  document.addEventListener("mousemove", e => move(e.clientX, e.clientY));
   document.addEventListener("mouseup", stopDrag);
 
-  /* ===== TOUCH ===== */
-  btn.addEventListener("touchstart", (e) => {
+  // touch
+  btn.addEventListener("touchstart", e => {
     const t = e.touches[0];
     startDrag(t.clientX, t.clientY, e);
   }, { passive: false });
 
-  document.addEventListener("touchmove", (e) => {
+  document.addEventListener("touchmove", e => {
     const t = e.touches[0];
     move(t.clientX, t.clientY);
   }, { passive: false });
 
   document.addEventListener("touchend", stopDrag);
 
-  /* ================= EDIT MODE ================= */
+  /* ================= EDIT ================= */
   function enableEdit() {
     btn.classList.add("editing");
     text.contentEditable = "true";
@@ -227,13 +220,13 @@ buttons.forEach(btn => {
     text.contentEditable = "false";
   }
 
-  btn.addEventListener("dblclick", (e) => {
+  btn.addEventListener("dblclick", e => {
     enableEdit();
     e.stopPropagation();
   });
 
   let lastTap = 0;
-  btn.addEventListener("touchend", (e) => {
+  btn.addEventListener("touchend", e => {
     let now = Date.now();
     if (now - lastTap < 300) {
       enableEdit();
@@ -242,13 +235,13 @@ buttons.forEach(btn => {
     lastTap = now;
   });
 
-  document.addEventListener("click", (e) => {
+  document.addEventListener("click", e => {
     if (!btn.contains(e.target)) {
       disableEdit();
     }
   });
 
-  btn.addEventListener("mousedown", (e) => {
+  btn.addEventListener("mousedown", e => {
     if (btn.classList.contains("editing")) {
       e.stopPropagation();
     }
