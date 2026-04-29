@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Stable Drag + Edit UI (Fixed Cursor)</title>
+<title>Full UI Drag + Edit + Fullscreen</title>
 
 <style>
   * {
@@ -14,20 +14,20 @@
     overflow: hidden;
   }
 
-  /* Background */
+  /* ===== BACKGROUND ===== */
   #container {
     width: 100vw;
     height: 100vh;
     position: relative;
 
-    background-image: url(bg.jpg); /* 👈 your image */
+    background-image: url("bg.jpg"); /* 👈 your image */
     background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
     background-color: black;
   }
 
-  /* Buttons */
+  /* ===== ROUND BUTTONS ===== */
   .dragBtn {
     position: absolute;
 
@@ -58,6 +58,26 @@
     background: orange !important;
     cursor: text;
   }
+
+  /* ===== FULLSCREEN BUTTON ===== */
+  #fsBtn {
+    position: fixed;
+    right: 15px;
+    bottom: 15px;
+
+    width: 50px;
+    height: 50px;
+
+    border-radius: 50%;
+    border: none;
+
+    background: rgba(0,0,0,0.6);
+    color: white;
+    font-size: 20px;
+
+    cursor: pointer;
+    z-index: 9999;
+  }
 </style>
 </head>
 
@@ -82,10 +102,30 @@
 
 </div>
 
+<!-- fullscreen button -->
+<button id="fsBtn">⛶</button>
+
 <script>
 const container = document.getElementById("container");
 const buttons = document.querySelectorAll(".dragBtn");
+const fsBtn = document.getElementById("fsBtn");
 
+/* ================= FULLSCREEN ================= */
+function goFullScreen() {
+  const elem = document.documentElement;
+
+  if (elem.requestFullscreen) {
+    elem.requestFullscreen();
+  } else if (elem.webkitRequestFullscreen) {
+    elem.webkitRequestFullscreen();
+  } else if (elem.msRequestFullscreen) {
+    elem.msRequestFullscreen();
+  }
+}
+
+fsBtn.addEventListener("click", goFullScreen);
+
+/* ================= BUTTONS ================= */
 buttons.forEach(btn => {
   const text = btn.querySelector("span");
 
@@ -93,7 +133,7 @@ buttons.forEach(btn => {
   let offsetX = 0;
   let offsetY = 0;
 
-  // ================= DRAG =================
+  /* ===== DRAG ===== */
   btn.addEventListener("mousedown", (e) => {
     if (btn.classList.contains("editing")) return;
 
@@ -127,13 +167,13 @@ buttons.forEach(btn => {
     btn.style.cursor = "grab";
   });
 
-  // ================= EDIT MODE =================
+  /* ===== EDIT MODE ===== */
   function enableEdit() {
     btn.classList.add("editing");
     text.contentEditable = "true";
     text.focus();
 
-    // ✅ FIX: cursor goes to END (no left jump)
+    // cursor goes to end
     const range = document.createRange();
     const sel = window.getSelection();
 
@@ -149,13 +189,13 @@ buttons.forEach(btn => {
     text.contentEditable = "false";
   }
 
-  // desktop double click
+  /* double click */
   btn.addEventListener("dblclick", (e) => {
     enableEdit();
     e.stopPropagation();
   });
 
-  // mobile double tap
+  /* double tap mobile */
   let lastTap = 0;
   btn.addEventListener("touchend", (e) => {
     let now = Date.now();
@@ -166,14 +206,14 @@ buttons.forEach(btn => {
     lastTap = now;
   });
 
-  // exit edit on outside click
+  /* exit edit */
   document.addEventListener("click", (e) => {
     if (!btn.contains(e.target)) {
       disableEdit();
     }
   });
 
-  // prevent drag while editing
+  /* prevent drag while editing */
   btn.addEventListener("mousedown", (e) => {
     if (btn.classList.contains("editing")) {
       e.stopPropagation();
