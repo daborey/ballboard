@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Full UI Toggle FS + Drag + Edit</title>
+<title>Drag Edit Fullscreen UI</title>
 
 <style>
   * {
@@ -27,7 +27,7 @@
     background-color: black;
   }
 
-  /* ===== ROUND BUTTONS ===== */
+  /* ===== BUTTON STYLE ===== */
   .dragBtn {
     position: absolute;
 
@@ -134,14 +134,12 @@ function exitFullScreen() {
 fsBtn.addEventListener("click", () => {
   if (isFullScreen()) {
     exitFullScreen();
-    fsBtn.innerText = "⛶";
   } else {
     enterFullScreen();
-    fsBtn.innerText = "✕";
   }
 });
 
-/* ================= BUTTON LOGIC ================= */
+/* ================= DRAG + EDIT ================= */
 buttons.forEach(btn => {
   const text = btn.querySelector("span");
 
@@ -149,7 +147,7 @@ buttons.forEach(btn => {
   let offsetX = 0;
   let offsetY = 0;
 
-  /* ===== DRAG ===== */
+  // ===== DRAG START =====
   btn.addEventListener("mousedown", (e) => {
     if (btn.classList.contains("editing")) return;
 
@@ -163,6 +161,7 @@ buttons.forEach(btn => {
     btn.style.cursor = "grabbing";
   });
 
+  // ===== DRAG MOVE =====
   document.addEventListener("mousemove", (e) => {
     if (!dragging) return;
 
@@ -178,12 +177,13 @@ buttons.forEach(btn => {
     btn.style.top = percentY + "%";
   });
 
+  // ===== DRAG END =====
   document.addEventListener("mouseup", () => {
     dragging = false;
     btn.style.cursor = "grab";
   });
 
-  /* ===== EDIT MODE ===== */
+  // ===== EDIT MODE =====
   function enableEdit() {
     btn.classList.add("editing");
     text.contentEditable = "true";
@@ -205,13 +205,13 @@ buttons.forEach(btn => {
     text.contentEditable = "false";
   }
 
-  /* double click */
+  // double click desktop
   btn.addEventListener("dblclick", (e) => {
     enableEdit();
     e.stopPropagation();
   });
 
-  /* double tap */
+  // double tap mobile
   let lastTap = 0;
   btn.addEventListener("touchend", (e) => {
     let now = Date.now();
@@ -222,14 +222,14 @@ buttons.forEach(btn => {
     lastTap = now;
   });
 
-  /* exit edit */
+  // exit edit mode
   document.addEventListener("click", (e) => {
     if (!btn.contains(e.target)) {
       disableEdit();
     }
   });
 
-  /* prevent drag while editing */
+  // prevent drag while editing
   btn.addEventListener("mousedown", (e) => {
     if (btn.classList.contains("editing")) {
       e.stopPropagation();
