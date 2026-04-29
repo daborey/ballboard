@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>No Crop Landscape UI</title>
+<title>Fixed Full UI</title>
 
 <style>
   * {
@@ -20,16 +20,16 @@
     height: 100vh;
     position: relative;
 
-    background-image: url("bg.jpg"); /* your landscape image */
-    background-size: contain;  /* ❗ always no crop */
+    background-image: url("bg.jpg");
+    background-size: contain;   /* NO CROP */
     background-position: center;
     background-repeat: no-repeat;
     background-color: black;
   }
 
-  /* fullscreen mode (visual feel only) */
-  #container.fs-mode {
-    transform: scale(1.03);
+  /* fullscreen visual mode */
+  #container.fs {
+    transform: scale(1.02);
   }
 
   /* ===== BUTTONS ===== */
@@ -49,8 +49,8 @@
     align-items: center;
     justify-content: center;
 
-    cursor: grab;
     user-select: none;
+    cursor: grab;
 
     font-size: clamp(10px, 1.2vw, 16px);
 
@@ -66,7 +66,7 @@
     cursor: text;
   }
 
-  /* ===== FULLSCREEN BUTTON ===== */
+  /* fullscreen button */
   #fsBtn {
     position: fixed;
     right: 15px;
@@ -82,7 +82,6 @@
     color: white;
     font-size: 20px;
 
-    cursor: pointer;
     z-index: 9999;
   }
 </style>
@@ -92,24 +91,21 @@
 
 <div id="container">
 
-  <!-- 11 buttons -->
-  <button class="dragBtn" style="top:10%; left:5%;"><span contenteditable="false">1</span></button>
-  <button class="dragBtn" style="top:10%; left:15%;"><span contenteditable="false">2</span></button>
-  <button class="dragBtn" style="top:10%; left:25%;"><span contenteditable="false">3</span></button>
-  <button class="dragBtn" style="top:10%; left:35%;"><span contenteditable="false">4</span></button>
-  <button class="dragBtn" style="top:10%; left:45%;"><span contenteditable="false">5</span></button>
-
-  <button class="dragBtn" style="top:20%; left:5%;"><span contenteditable="false">6</span></button>
-  <button class="dragBtn" style="top:20%; left:15%;"><span contenteditable="false">7</span></button>
-  <button class="dragBtn" style="top:20%; left:25%;"><span contenteditable="false">8</span></button>
-  <button class="dragBtn" style="top:20%; left:35%;"><span contenteditable="false">9</span></button>
-  <button class="dragBtn" style="top:20%; left:45%;"><span contenteditable="false">10</span></button>
-
-  <button class="dragBtn" style="top:30%; left:5%;"><span contenteditable="false">11</span></button>
+  <!-- buttons -->
+  <button class="dragBtn" style="top:10%; left:10%;"><span contenteditable="false">1</span></button>
+  <button class="dragBtn" style="top:10%; left:20%;"><span contenteditable="false">2</span></button>
+  <button class="dragBtn" style="top:10%; left:30%;"><span contenteditable="false">3</span></button>
+  <button class="dragBtn" style="top:20%; left:10%;"><span contenteditable="false">4</span></button>
+  <button class="dragBtn" style="top:20%; left:20%;"><span contenteditable="false">5</span></button>
+  <button class="dragBtn" style="top:20%; left:30%;"><span contenteditable="false">6</span></button>
+  <button class="dragBtn" style="top:30%; left:10%;"><span contenteditable="false">7</span></button>
+  <button class="dragBtn" style="top:30%; left:20%;"><span contenteditable="false">8</span></button>
+  <button class="dragBtn" style="top:30%; left:30%;"><span contenteditable="false">9</span></button>
+  <button class="dragBtn" style="top:40%; left:10%;"><span contenteditable="false">10</span></button>
+  <button class="dragBtn" style="top:40%; left:20%;"><span contenteditable="false">11</span></button>
 
 </div>
 
-<!-- fullscreen button -->
 <button id="fsBtn">⛶</button>
 
 <script>
@@ -117,30 +113,26 @@ const container = document.getElementById("container");
 const buttons = document.querySelectorAll(".dragBtn");
 const fsBtn = document.getElementById("fsBtn");
 
-/* ================= FULLSCREEN TOGGLE ================= */
-function isFullScreen() {
-  return document.fullscreenElement ||
-         document.webkitFullscreenElement ||
-         document.msFullscreenElement;
+/* ================= FULLSCREEN FIXED ================= */
+function isFS() {
+  return document.fullscreenElement;
 }
 
-function enterFullScreen() {
-  document.documentElement.requestFullscreen?.();
-}
-
-function exitFullScreen() {
-  document.exitFullscreen?.();
-}
-
-fsBtn.addEventListener("click", () => {
-  container.classList.toggle("fs-mode");
-
-  if (isFullScreen()) {
-    exitFullScreen();
-  } else {
-    enterFullScreen();
+async function toggleFS() {
+  try {
+    if (!isFS()) {
+      await document.documentElement.requestFullscreen();
+      container.classList.add("fs");
+    } else {
+      await document.exitFullscreen();
+      container.classList.remove("fs");
+    }
+  } catch (e) {
+    console.log("Fullscreen error:", e);
   }
-});
+}
+
+fsBtn.addEventListener("click", toggleFS);
 
 /* ================= DRAG ================= */
 buttons.forEach(btn => {
@@ -150,46 +142,43 @@ buttons.forEach(btn => {
   let offsetX = 0;
   let offsetY = 0;
 
-  function startDrag(x, y, e) {
+  function start(x, y, e) {
     if (btn.classList.contains("editing")) return;
 
     dragging = true;
+    const r = btn.getBoundingClientRect();
 
-    const rect = btn.getBoundingClientRect();
+    offsetX = x - r.left;
+    offsetY = y - r.top;
 
-    offsetX = x - rect.left;
-    offsetY = y - rect.top;
-
-    btn.style.cursor = "grabbing";
     if (e) e.preventDefault();
   }
 
   function move(x, y) {
     if (!dragging) return;
 
-    const rect = container.getBoundingClientRect();
+    const r = container.getBoundingClientRect();
 
-    let posX = x - rect.left - offsetX;
-    let posY = y - rect.top - offsetY;
+    let px = x - r.left - offsetX;
+    let py = y - r.top - offsetY;
 
-    btn.style.left = (posX / rect.width) * 100 + "%";
-    btn.style.top = (posY / rect.height) * 100 + "%";
+    btn.style.left = (px / r.width) * 100 + "%";
+    btn.style.top = (py / r.height) * 100 + "%";
   }
 
-  function stopDrag() {
+  function stop() {
     dragging = false;
-    btn.style.cursor = "grab";
   }
 
   // mouse
-  btn.addEventListener("mousedown", e => startDrag(e.clientX, e.clientY, e));
+  btn.addEventListener("mousedown", e => start(e.clientX, e.clientY, e));
   document.addEventListener("mousemove", e => move(e.clientX, e.clientY));
-  document.addEventListener("mouseup", stopDrag);
+  document.addEventListener("mouseup", stop);
 
   // touch
   btn.addEventListener("touchstart", e => {
     const t = e.touches[0];
-    startDrag(t.clientX, t.clientY, e);
+    start(t.clientX, t.clientY, e);
   }, { passive: false });
 
   document.addEventListener("touchmove", e => {
@@ -197,10 +186,10 @@ buttons.forEach(btn => {
     move(t.clientX, t.clientY);
   }, { passive: false });
 
-  document.addEventListener("touchend", stopDrag);
+  document.addEventListener("touchend", stop);
 
   /* ================= EDIT ================= */
-  function enableEdit() {
+  function edit() {
     btn.classList.add("editing");
     text.contentEditable = "true";
     text.focus();
@@ -215,13 +204,13 @@ buttons.forEach(btn => {
     sel.addRange(range);
   }
 
-  function disableEdit() {
+  function exitEdit() {
     btn.classList.remove("editing");
     text.contentEditable = "false";
   }
 
   btn.addEventListener("dblclick", e => {
-    enableEdit();
+    edit();
     e.stopPropagation();
   });
 
@@ -229,22 +218,14 @@ buttons.forEach(btn => {
   btn.addEventListener("touchend", e => {
     let now = Date.now();
     if (now - lastTap < 300) {
-      enableEdit();
+      edit();
       e.preventDefault();
     }
     lastTap = now;
   });
 
   document.addEventListener("click", e => {
-    if (!btn.contains(e.target)) {
-      disableEdit();
-    }
-  });
-
-  btn.addEventListener("mousedown", e => {
-    if (btn.classList.contains("editing")) {
-      e.stopPropagation();
-    }
+    if (!btn.contains(e.target)) exitEdit();
   });
 });
 </script>
