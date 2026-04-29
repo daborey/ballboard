@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Full UI Fixed Zoom</title>
+<title>Stable Full UI</title>
 
 <style>
   * {
@@ -14,22 +14,29 @@
     overflow: hidden;
   }
 
-  /* ===== BACKGROUND ===== */
+  /* ===== MAIN BACKGROUND ===== */
   #container {
     width: 100vw;
     height: 100vh;
     position: relative;
 
-    background-image: url("bg.jpg");
-    background-size: contain;   /* normal = no crop */
-    background-position: center;
-    background-repeat: no-repeat;
-    background-color: black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: black;
   }
 
-  /* 🔥 fullscreen mode = YouTube style fill */
-  #container.fs {
-    background-size: cover;
+  /* IMAGE (NO CROP EVER) */
+  #container img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain; /* 🔥 always full visible */
+  }
+
+  /* fullscreen mode */
+  #container.fs img {
+    transform: scale(1.03); /* small zoom feel like YouTube */
   }
 
   /* ===== BUTTONS ===== */
@@ -50,7 +57,6 @@
     justify-content: center;
 
     user-select: none;
-    cursor: grab;
 
     font-size: clamp(10px, 1.2vw, 16px);
 
@@ -63,7 +69,6 @@
 
   .editing {
     background: orange !important;
-    cursor: text;
   }
 
   /* ===== FULLSCREEN BUTTON ===== */
@@ -72,8 +77,8 @@
     right: 15px;
     bottom: 15px;
 
-    width: 50px;
-    height: 50px;
+    width: 55px;
+    height: 55px;
 
     border-radius: 50%;
     border: none;
@@ -90,8 +95,9 @@
 <body>
 
 <div id="container">
+  <img src="bg.jpg">
 
-  <!-- your buttons unchanged -->
+  <!-- BUTTONS -->
   <button class="dragBtn" style="top:10%; left:10%;"><span contenteditable="false">1</span></button>
   <button class="dragBtn" style="top:10%; left:20%;"><span contenteditable="false">2</span></button>
   <button class="dragBtn" style="top:20%; left:10%;"><span contenteditable="false">3</span></button>
@@ -103,7 +109,6 @@
   <button class="dragBtn" style="top:50%; left:10%;"><span contenteditable="false">9</span></button>
   <button class="dragBtn" style="top:50%; left:20%;"><span contenteditable="false">10</span></button>
   <button class="dragBtn" style="top:60%; left:10%;"><span contenteditable="false">11</span></button>
-
 </div>
 
 <button id="fsBtn">⛶</button>
@@ -113,28 +118,20 @@ const container = document.getElementById("container");
 const buttons = document.querySelectorAll(".dragBtn");
 const fsBtn = document.getElementById("fsBtn");
 
-/* ================= FULLSCREEN (FIXED) ================= */
-function isFS() {
-  return document.fullscreenElement;
-}
-
+/* ================= FULLSCREEN ================= */
 async function toggleFS() {
-  try {
-    if (!isFS()) {
-      await document.documentElement.requestFullscreen();
-      container.classList.add("fs");
-    } else {
-      await document.exitFullscreen();
-      container.classList.remove("fs");
-    }
-  } catch (e) {
-    console.log(e);
+  if (!document.fullscreenElement) {
+    await document.documentElement.requestFullscreen();
+    container.classList.add("fs");
+  } else {
+    await document.exitFullscreen();
+    container.classList.remove("fs");
   }
 }
 
 fsBtn.addEventListener("click", toggleFS);
 
-/* ================= DRAG ================= */
+/* ================= DRAG (MOBILE + PC FIXED) ================= */
 buttons.forEach(btn => {
   const text = btn.querySelector("span");
 
