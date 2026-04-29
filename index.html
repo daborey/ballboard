@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Stable Drag + Edit UI (Fixed Cursor)</title>
+
+<style>
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    overflow: hidden;
+  }
+
+  /* Background */
+  #container {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+
+    background-image: url(bg.jpg); /* 👈 your image */
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-color: black;
+  }
+
+  /* Buttons */
+  .dragBtn {
+    position: absolute;
+
+    width: clamp(45px, 6vw, 80px);
+    height: clamp(45px, 6vw, 80px);
+
+    border-radius: 50%;
+    border: none;
+
+    background: #4CAF50;
+    color: white;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    cursor: grab;
+    user-select: none;
+
+    font-size: clamp(10px, 1.2vw, 16px);
+  }
+
+  .dragBtn span {
+    outline: none;
+  }
+
+  .editing {
+    background: orange !important;
+    cursor: text;
+  }
+</style>
+</head>
+
+<body>
+
+<div id="container">
+
+  <!-- 11 buttons -->
+  <button class="dragBtn" style="top:10%; left:5%;"><span contenteditable="false">1</span></button>
+  <button class="dragBtn" style="top:10%; left:15%;"><span contenteditable="false">2</span></button>
+  <button class="dragBtn" style="top:10%; left:25%;"><span contenteditable="false">3</span></button>
+  <button class="dragBtn" style="top:10%; left:35%;"><span contenteditable="false">4</span></button>
+  <button class="dragBtn" style="top:10%; left:45%;"><span contenteditable="false">5</span></button>
+
+  <button class="dragBtn" style="top:20%; left:5%;"><span contenteditable="false">6</span></button>
+  <button class="dragBtn" style="top:20%; left:15%;"><span contenteditable="false">7</span></button>
+  <button class="dragBtn" style="top:20%; left:25%;"><span contenteditable="false">8</span></button>
+  <button class="dragBtn" style="top:20%; left:35%;"><span contenteditable="false">9</span></button>
+  <button class="dragBtn" style="top:20%; left:45%;"><span contenteditable="false">10</span></button>
+
+  <button class="dragBtn" style="top:30%; left:5%;"><span contenteditable="false">11</span></button>
+
+</div>
+
+<script>
+const container = document.getElementById("container");
+const buttons = document.querySelectorAll(".dragBtn");
+
+buttons.forEach(btn => {
+  const text = btn.querySelector("span");
+
+  let dragging = false;
+  let offsetX = 0;
+  let offsetY = 0;
+
+  // ================= DRAG =================
+  btn.addEventListener("mousedown", (e) => {
+    if (btn.classList.contains("editing")) return;
+
+    dragging = true;
+
+    const rect = btn.getBoundingClientRect();
+
+    offsetX = e.clientX - rect.left;
+    offsetY = e.clientY - rect.top;
+
+    btn.style.cursor = "grabbing";
+  });
+
+  document.addEventListener("mousemove", (e) => {
+    if (!dragging) return;
+
+    const rect = container.getBoundingClientRect();
+
+    let x = e.clientX - rect.left - offsetX;
+    let y = e.clientY - rect.top - offsetY;
+
+    let percentX = (x / rect.width) * 100;
+    let percentY = (y / rect.height) * 100;
+
+    btn.style.left = percentX + "%";
+    btn.style.top = percentY + "%";
+  });
+
+  document.addEventListener("mouseup", () => {
+    dragging = false;
+    btn.style.cursor = "grab";
+  });
+
+  // ================= EDIT MODE =================
+  function enableEdit() {
+    btn.classList.add("editing");
+    text.contentEditable = "true";
+    text.focus();
+
+    // ✅ FIX: cursor goes to END (no left jump)
+    const range = document.createRange();
+    const sel = window.getSelection();
+
+    range.selectNodeContents(text);
+    range.collapse(false);
+
+    sel.removeAllRanges();
+    sel.addRange(range);
+  }
+
+  function disableEdit() {
+    btn.classList.remove("editing");
+    text.contentEditable = "false";
+  }
+
+  // desktop double click
+  btn.addEventListener("dblclick", (e) => {
+    enableEdit();
+    e.stopPropagation();
+  });
+
+  // mobile double tap
+  let lastTap = 0;
+  btn.addEventListener("touchend", (e) => {
+    let now = Date.now();
+    if (now - lastTap < 300) {
+      enableEdit();
+      e.preventDefault();
+    }
+    lastTap = now;
+  });
+
+  // exit edit on outside click
+  document.addEventListener("click", (e) => {
+    if (!btn.contains(e.target)) {
+      disableEdit();
+    }
+  });
+
+  // prevent drag while editing
+  btn.addEventListener("mousedown", (e) => {
+    if (btn.classList.contains("editing")) {
+      e.stopPropagation();
+    }
+  });
+});
+</script>
+
+</body>
+</html>
