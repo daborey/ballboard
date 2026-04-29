@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Stable Full UI</title>
+<title>Fit Screen No Crop Full UI</title>
 
 <style>
   * {
@@ -12,9 +12,10 @@
   body {
     margin: 0;
     overflow: hidden;
+    background: black;
   }
 
-  /* ===== MAIN BACKGROUND ===== */
+  /* ===== MAIN CONTAINER ===== */
   #container {
     width: 100vw;
     height: 100vh;
@@ -27,19 +28,23 @@
     background: black;
   }
 
-  /* IMAGE (NO CROP EVER) */
+  /* ===== IMAGE (NO CROP, FIT SCREEN) ===== */
   #container img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain; /* 🔥 always full visible */
+    max-width: 100%;
+    max-height: 100%;
+
+    width: auto;
+    height: auto;
+
+    object-fit: contain;
   }
 
-  /* fullscreen mode */
+  /* fullscreen feel only */
   #container.fs img {
-    transform: scale(1.03); /* small zoom feel like YouTube */
+    transform: scale(1.02);
   }
 
-  /* ===== BUTTONS ===== */
+  /* ===== DRAG BUTTONS ===== */
   .dragBtn {
     position: absolute;
 
@@ -57,6 +62,7 @@
     justify-content: center;
 
     user-select: none;
+    cursor: grab;
 
     font-size: clamp(10px, 1.2vw, 16px);
 
@@ -69,6 +75,7 @@
 
   .editing {
     background: orange !important;
+    cursor: text;
   }
 
   /* ===== FULLSCREEN BUTTON ===== */
@@ -95,9 +102,10 @@
 <body>
 
 <div id="container">
+
   <img src="bg.jpg">
 
-  <!-- BUTTONS -->
+  <!-- 11 BUTTONS -->
   <button class="dragBtn" style="top:10%; left:10%;"><span contenteditable="false">1</span></button>
   <button class="dragBtn" style="top:10%; left:20%;"><span contenteditable="false">2</span></button>
   <button class="dragBtn" style="top:20%; left:10%;"><span contenteditable="false">3</span></button>
@@ -109,6 +117,7 @@
   <button class="dragBtn" style="top:50%; left:10%;"><span contenteditable="false">9</span></button>
   <button class="dragBtn" style="top:50%; left:20%;"><span contenteditable="false">10</span></button>
   <button class="dragBtn" style="top:60%; left:10%;"><span contenteditable="false">11</span></button>
+
 </div>
 
 <button id="fsBtn">⛶</button>
@@ -131,7 +140,7 @@ async function toggleFS() {
 
 fsBtn.addEventListener("click", toggleFS);
 
-/* ================= DRAG (MOBILE + PC FIXED) ================= */
+/* ================= DRAG ================= */
 buttons.forEach(btn => {
   const text = btn.querySelector("span");
 
