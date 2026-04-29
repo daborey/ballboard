@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Fixed Full UI</title>
+<title>Mobile Fixed Drag UI</title>
 
 <style>
   * {
@@ -21,23 +21,18 @@
     position: relative;
 
     background-image: url("bg.jpg");
-    background-size: contain;   /* NO CROP */
+    background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
     background-color: black;
-  }
-
-  /* fullscreen visual mode */
-  #container.fs {
-    transform: scale(1.02);
   }
 
   /* ===== BUTTONS ===== */
   .dragBtn {
     position: absolute;
 
-    width: clamp(45px, 6vw, 80px);
-    height: clamp(45px, 6vw, 80px);
+    width: clamp(50px, 10vw, 80px);
+    height: clamp(50px, 10vw, 80px);
 
     border-radius: 50%;
     border: none;
@@ -50,10 +45,10 @@
     justify-content: center;
 
     user-select: none;
-    cursor: grab;
 
-    font-size: clamp(10px, 1.2vw, 16px);
+    font-size: clamp(12px, 3vw, 16px);
 
+    /* IMPORTANT FOR MOBILE */
     touch-action: none;
   }
 
@@ -63,17 +58,16 @@
 
   .editing {
     background: orange !important;
-    cursor: text;
   }
 
-  /* fullscreen button */
+  /* ===== FS BUTTON ===== */
   #fsBtn {
     position: fixed;
     right: 15px;
     bottom: 15px;
 
-    width: 50px;
-    height: 50px;
+    width: 55px;
+    height: 55px;
 
     border-radius: 50%;
     border: none;
@@ -91,18 +85,11 @@
 
 <div id="container">
 
-  <!-- buttons -->
   <button class="dragBtn" style="top:10%; left:10%;"><span contenteditable="false">1</span></button>
-  <button class="dragBtn" style="top:10%; left:20%;"><span contenteditable="false">2</span></button>
-  <button class="dragBtn" style="top:10%; left:30%;"><span contenteditable="false">3</span></button>
-  <button class="dragBtn" style="top:20%; left:10%;"><span contenteditable="false">4</span></button>
-  <button class="dragBtn" style="top:20%; left:20%;"><span contenteditable="false">5</span></button>
-  <button class="dragBtn" style="top:20%; left:30%;"><span contenteditable="false">6</span></button>
-  <button class="dragBtn" style="top:30%; left:10%;"><span contenteditable="false">7</span></button>
-  <button class="dragBtn" style="top:30%; left:20%;"><span contenteditable="false">8</span></button>
-  <button class="dragBtn" style="top:30%; left:30%;"><span contenteditable="false">9</span></button>
-  <button class="dragBtn" style="top:40%; left:10%;"><span contenteditable="false">10</span></button>
-  <button class="dragBtn" style="top:40%; left:20%;"><span contenteditable="false">11</span></button>
+  <button class="dragBtn" style="top:10%; left:25%;"><span contenteditable="false">2</span></button>
+  <button class="dragBtn" style="top:20%; left:10%;"><span contenteditable="false">3</span></button>
+  <button class="dragBtn" style="top:20%; left:25%;"><span contenteditable="false">4</span></button>
+  <button class="dragBtn" style="top:30%; left:10%;"><span contenteditable="false">5</span></button>
 
 </div>
 
@@ -113,28 +100,22 @@ const container = document.getElementById("container");
 const buttons = document.querySelectorAll(".dragBtn");
 const fsBtn = document.getElementById("fsBtn");
 
-/* ================= FULLSCREEN FIXED ================= */
-function isFS() {
-  return document.fullscreenElement;
-}
-
-async function toggleFS() {
+/* ================= FULLSCREEN (MOBILE SAFE) ================= */
+async function toggleFullscreen() {
   try {
-    if (!isFS()) {
+    if (!document.fullscreenElement) {
       await document.documentElement.requestFullscreen();
-      container.classList.add("fs");
     } else {
       await document.exitFullscreen();
-      container.classList.remove("fs");
     }
   } catch (e) {
-    console.log("Fullscreen error:", e);
+    console.log(e);
   }
 }
 
-fsBtn.addEventListener("click", toggleFS);
+fsBtn.addEventListener("click", toggleFullscreen);
 
-/* ================= DRAG ================= */
+/* ================= DRAG (POINTER EVENTS FIX) ================= */
 buttons.forEach(btn => {
   const text = btn.querySelector("span");
 
@@ -142,51 +123,39 @@ buttons.forEach(btn => {
   let offsetX = 0;
   let offsetY = 0;
 
-  function start(x, y, e) {
+  function start(e) {
     if (btn.classList.contains("editing")) return;
 
     dragging = true;
-    const r = btn.getBoundingClientRect();
 
-    offsetX = x - r.left;
-    offsetY = y - r.top;
+    const rect = btn.getBoundingClientRect();
 
-    if (e) e.preventDefault();
+    offsetX = e.clientX - rect.left;
+    offsetY = e.clientY - rect.top;
+
+    e.preventDefault();
   }
 
-  function move(x, y) {
+  function move(e) {
     if (!dragging) return;
 
-    const r = container.getBoundingClientRect();
+    const rect = container.getBoundingClientRect();
 
-    let px = x - r.left - offsetX;
-    let py = y - r.top - offsetY;
+    let x = e.clientX - rect.left - offsetX;
+    let y = e.clientY - rect.top - offsetY;
 
-    btn.style.left = (px / r.width) * 100 + "%";
-    btn.style.top = (py / r.height) * 100 + "%";
+    btn.style.left = (x / rect.width) * 100 + "%";
+    btn.style.top = (y / rect.height) * 100 + "%";
   }
 
-  function stop() {
+  function end() {
     dragging = false;
   }
 
-  // mouse
-  btn.addEventListener("mousedown", e => start(e.clientX, e.clientY, e));
-  document.addEventListener("mousemove", e => move(e.clientX, e.clientY));
-  document.addEventListener("mouseup", stop);
-
-  // touch
-  btn.addEventListener("touchstart", e => {
-    const t = e.touches[0];
-    start(t.clientX, t.clientY, e);
-  }, { passive: false });
-
-  document.addEventListener("touchmove", e => {
-    const t = e.touches[0];
-    move(t.clientX, t.clientY);
-  }, { passive: false });
-
-  document.addEventListener("touchend", stop);
+  /* POINTER EVENTS (WORKS ON ALL DEVICES) */
+  btn.addEventListener("pointerdown", start);
+  document.addEventListener("pointermove", move);
+  document.addEventListener("pointerup", end);
 
   /* ================= EDIT ================= */
   function edit() {
@@ -204,28 +173,15 @@ buttons.forEach(btn => {
     sel.addRange(range);
   }
 
-  function exitEdit() {
+  function stopEdit() {
     btn.classList.remove("editing");
     text.contentEditable = "false";
   }
 
-  btn.addEventListener("dblclick", e => {
-    edit();
-    e.stopPropagation();
-  });
-
-  let lastTap = 0;
-  btn.addEventListener("touchend", e => {
-    let now = Date.now();
-    if (now - lastTap < 300) {
-      edit();
-      e.preventDefault();
-    }
-    lastTap = now;
-  });
+  btn.addEventListener("dblclick", edit);
 
   document.addEventListener("click", e => {
-    if (!btn.contains(e.target)) exitEdit();
+    if (!btn.contains(e.target)) stopEdit();
   });
 });
 </script>
