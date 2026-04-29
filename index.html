@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Mobile Fixed Drag UI</title>
+<title>Full UI Fixed Zoom</title>
 
 <style>
   * {
@@ -21,18 +21,23 @@
     position: relative;
 
     background-image: url("bg.jpg");
-    background-size: contain;
+    background-size: contain;   /* normal = no crop */
     background-position: center;
     background-repeat: no-repeat;
     background-color: black;
+  }
+
+  /* 🔥 fullscreen mode = YouTube style fill */
+  #container.fs {
+    background-size: cover;
   }
 
   /* ===== BUTTONS ===== */
   .dragBtn {
     position: absolute;
 
-    width: clamp(50px, 10vw, 80px);
-    height: clamp(50px, 10vw, 80px);
+    width: clamp(45px, 6vw, 80px);
+    height: clamp(45px, 6vw, 80px);
 
     border-radius: 50%;
     border: none;
@@ -45,10 +50,10 @@
     justify-content: center;
 
     user-select: none;
+    cursor: grab;
 
-    font-size: clamp(12px, 3vw, 16px);
+    font-size: clamp(10px, 1.2vw, 16px);
 
-    /* IMPORTANT FOR MOBILE */
     touch-action: none;
   }
 
@@ -58,16 +63,17 @@
 
   .editing {
     background: orange !important;
+    cursor: text;
   }
 
-  /* ===== FS BUTTON ===== */
+  /* ===== FULLSCREEN BUTTON ===== */
   #fsBtn {
     position: fixed;
     right: 15px;
     bottom: 15px;
 
-    width: 55px;
-    height: 55px;
+    width: 50px;
+    height: 50px;
 
     border-radius: 50%;
     border: none;
@@ -85,11 +91,18 @@
 
 <div id="container">
 
+  <!-- your buttons unchanged -->
   <button class="dragBtn" style="top:10%; left:10%;"><span contenteditable="false">1</span></button>
-  <button class="dragBtn" style="top:10%; left:25%;"><span contenteditable="false">2</span></button>
+  <button class="dragBtn" style="top:10%; left:20%;"><span contenteditable="false">2</span></button>
   <button class="dragBtn" style="top:20%; left:10%;"><span contenteditable="false">3</span></button>
-  <button class="dragBtn" style="top:20%; left:25%;"><span contenteditable="false">4</span></button>
+  <button class="dragBtn" style="top:20%; left:20%;"><span contenteditable="false">4</span></button>
   <button class="dragBtn" style="top:30%; left:10%;"><span contenteditable="false">5</span></button>
+  <button class="dragBtn" style="top:30%; left:20%;"><span contenteditable="false">6</span></button>
+  <button class="dragBtn" style="top:40%; left:10%;"><span contenteditable="false">7</span></button>
+  <button class="dragBtn" style="top:40%; left:20%;"><span contenteditable="false">8</span></button>
+  <button class="dragBtn" style="top:50%; left:10%;"><span contenteditable="false">9</span></button>
+  <button class="dragBtn" style="top:50%; left:20%;"><span contenteditable="false">10</span></button>
+  <button class="dragBtn" style="top:60%; left:10%;"><span contenteditable="false">11</span></button>
 
 </div>
 
@@ -100,22 +113,28 @@ const container = document.getElementById("container");
 const buttons = document.querySelectorAll(".dragBtn");
 const fsBtn = document.getElementById("fsBtn");
 
-/* ================= FULLSCREEN (MOBILE SAFE) ================= */
-async function toggleFullscreen() {
+/* ================= FULLSCREEN (FIXED) ================= */
+function isFS() {
+  return document.fullscreenElement;
+}
+
+async function toggleFS() {
   try {
-    if (!document.fullscreenElement) {
+    if (!isFS()) {
       await document.documentElement.requestFullscreen();
+      container.classList.add("fs");
     } else {
       await document.exitFullscreen();
+      container.classList.remove("fs");
     }
   } catch (e) {
     console.log(e);
   }
 }
 
-fsBtn.addEventListener("click", toggleFullscreen);
+fsBtn.addEventListener("click", toggleFS);
 
-/* ================= DRAG (POINTER EVENTS FIX) ================= */
+/* ================= DRAG ================= */
 buttons.forEach(btn => {
   const text = btn.querySelector("span");
 
@@ -123,39 +142,51 @@ buttons.forEach(btn => {
   let offsetX = 0;
   let offsetY = 0;
 
-  function start(e) {
+  function start(x, y, e) {
     if (btn.classList.contains("editing")) return;
 
     dragging = true;
 
-    const rect = btn.getBoundingClientRect();
+    const r = btn.getBoundingClientRect();
+    offsetX = x - r.left;
+    offsetY = y - r.top;
 
-    offsetX = e.clientX - rect.left;
-    offsetY = e.clientY - rect.top;
-
-    e.preventDefault();
+    if (e) e.preventDefault();
   }
 
-  function move(e) {
+  function move(x, y) {
     if (!dragging) return;
 
-    const rect = container.getBoundingClientRect();
+    const r = container.getBoundingClientRect();
 
-    let x = e.clientX - rect.left - offsetX;
-    let y = e.clientY - rect.top - offsetY;
+    let px = x - r.left - offsetX;
+    let py = y - r.top - offsetY;
 
-    btn.style.left = (x / rect.width) * 100 + "%";
-    btn.style.top = (y / rect.height) * 100 + "%";
+    btn.style.left = (px / r.width) * 100 + "%";
+    btn.style.top = (py / r.height) * 100 + "%";
   }
 
-  function end() {
+  function stop() {
     dragging = false;
   }
 
-  /* POINTER EVENTS (WORKS ON ALL DEVICES) */
-  btn.addEventListener("pointerdown", start);
-  document.addEventListener("pointermove", move);
-  document.addEventListener("pointerup", end);
+  // mouse
+  btn.addEventListener("mousedown", e => start(e.clientX, e.clientY, e));
+  document.addEventListener("mousemove", e => move(e.clientX, e.clientY));
+  document.addEventListener("mouseup", stop);
+
+  // touch
+  btn.addEventListener("touchstart", e => {
+    const t = e.touches[0];
+    start(t.clientX, t.clientY, e);
+  }, { passive: false });
+
+  document.addEventListener("touchmove", e => {
+    const t = e.touches[0];
+    move(t.clientX, t.clientY);
+  }, { passive: false });
+
+  document.addEventListener("touchend", stop);
 
   /* ================= EDIT ================= */
   function edit() {
