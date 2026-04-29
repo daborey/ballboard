@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Fit Screen No Crop Full UI</title>
+<title>Stable No Crop Fullscreen UI</title>
 
 <style>
   * {
@@ -15,7 +15,7 @@
     background: black;
   }
 
-  /* ===== MAIN CONTAINER ===== */
+  /* ===== MAIN WRAPPER ===== */
   #container {
     width: 100vw;
     height: 100vh;
@@ -28,15 +28,12 @@
     background: black;
   }
 
-  /* ===== IMAGE (NO CROP, FIT SCREEN) ===== */
+  /* ===== IMAGE (NO CROP EVER) ===== */
   #container img {
-    max-width: 100%;
-    max-height: 100%;
+    width: 100%;
+    height: 100%;
 
-    width: auto;
-    height: auto;
-
-    object-fit: contain;
+    object-fit: contain;  /* 🔥 THIS IS THE KEY */
   }
 
   /* fullscreen feel only */
@@ -44,7 +41,7 @@
     transform: scale(1.02);
   }
 
-  /* ===== DRAG BUTTONS ===== */
+  /* ===== BUTTONS ===== */
   .dragBtn {
     position: absolute;
 
@@ -62,9 +59,6 @@
     justify-content: center;
 
     user-select: none;
-    cursor: grab;
-
-    font-size: clamp(10px, 1.2vw, 16px);
 
     touch-action: none;
   }
@@ -75,10 +69,9 @@
 
   .editing {
     background: orange !important;
-    cursor: text;
   }
 
-  /* ===== FULLSCREEN BUTTON ===== */
+  /* fullscreen button */
   #fsBtn {
     position: fixed;
     right: 15px;
@@ -105,7 +98,7 @@
 
   <img src="bg.jpg">
 
-  <!-- 11 BUTTONS -->
+  <!-- buttons -->
   <button class="dragBtn" style="top:10%; left:10%;"><span contenteditable="false">1</span></button>
   <button class="dragBtn" style="top:10%; left:20%;"><span contenteditable="false">2</span></button>
   <button class="dragBtn" style="top:20%; left:10%;"><span contenteditable="false">3</span></button>
@@ -176,12 +169,10 @@ buttons.forEach(btn => {
     dragging = false;
   }
 
-  // mouse
   btn.addEventListener("mousedown", e => start(e.clientX, e.clientY, e));
   document.addEventListener("mousemove", e => move(e.clientX, e.clientY));
   document.addEventListener("mouseup", stop);
 
-  // touch
   btn.addEventListener("touchstart", e => {
     const t = e.touches[0];
     start(t.clientX, t.clientY, e);
@@ -194,20 +185,11 @@ buttons.forEach(btn => {
 
   document.addEventListener("touchend", stop);
 
-  /* ================= EDIT ================= */
+  /* edit */
   function edit() {
     btn.classList.add("editing");
     text.contentEditable = "true";
     text.focus();
-
-    const range = document.createRange();
-    const sel = window.getSelection();
-
-    range.selectNodeContents(text);
-    range.collapse(false);
-
-    sel.removeAllRanges();
-    sel.addRange(range);
   }
 
   function stopEdit() {
