@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Full UI Drag + Edit + Fullscreen</title>
+<title>Full UI Toggle FS + Drag + Edit</title>
 
 <style>
   * {
@@ -110,22 +110,38 @@ const container = document.getElementById("container");
 const buttons = document.querySelectorAll(".dragBtn");
 const fsBtn = document.getElementById("fsBtn");
 
-/* ================= FULLSCREEN ================= */
-function goFullScreen() {
-  const elem = document.documentElement;
-
-  if (elem.requestFullscreen) {
-    elem.requestFullscreen();
-  } else if (elem.webkitRequestFullscreen) {
-    elem.webkitRequestFullscreen();
-  } else if (elem.msRequestFullscreen) {
-    elem.msRequestFullscreen();
-  }
+/* ================= FULLSCREEN TOGGLE ================= */
+function isFullScreen() {
+  return document.fullscreenElement ||
+         document.webkitFullscreenElement ||
+         document.msFullscreenElement;
 }
 
-fsBtn.addEventListener("click", goFullScreen);
+function enterFullScreen() {
+  const elem = document.documentElement;
 
-/* ================= BUTTONS ================= */
+  if (elem.requestFullscreen) elem.requestFullscreen();
+  else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
+  else if (elem.msRequestFullscreen) elem.msRequestFullscreen();
+}
+
+function exitFullScreen() {
+  if (document.exitFullscreen) document.exitFullscreen();
+  else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+  else if (document.msExitFullscreen) document.msExitFullscreen();
+}
+
+fsBtn.addEventListener("click", () => {
+  if (isFullScreen()) {
+    exitFullScreen();
+    fsBtn.innerText = "⛶";
+  } else {
+    enterFullScreen();
+    fsBtn.innerText = "✕";
+  }
+});
+
+/* ================= BUTTON LOGIC ================= */
 buttons.forEach(btn => {
   const text = btn.querySelector("span");
 
@@ -173,7 +189,7 @@ buttons.forEach(btn => {
     text.contentEditable = "true";
     text.focus();
 
-    // cursor goes to end
+    // cursor to end
     const range = document.createRange();
     const sel = window.getSelection();
 
@@ -195,7 +211,7 @@ buttons.forEach(btn => {
     e.stopPropagation();
   });
 
-  /* double tap mobile */
+  /* double tap */
   let lastTap = 0;
   btn.addEventListener("touchend", (e) => {
     let now = Date.now();
