@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Stable No Crop Fullscreen UI</title>
+<title>Fullscreen + Rotate + No Crop UI</title>
 
 <style>
   * {
@@ -15,7 +15,7 @@
     background: black;
   }
 
-  /* ===== MAIN WRAPPER ===== */
+  /* ===== MAIN SCREEN ===== */
   #container {
     width: 100vw;
     height: 100vh;
@@ -33,10 +33,10 @@
     width: 100%;
     height: 100%;
 
-    object-fit: contain;  /* 🔥 THIS IS THE KEY */
+    object-fit: contain;
   }
 
-  /* fullscreen feel only */
+  /* fullscreen feel */
   #container.fs img {
     transform: scale(1.02);
   }
@@ -60,6 +60,8 @@
 
     user-select: none;
 
+    font-size: clamp(10px, 1.2vw, 16px);
+
     touch-action: none;
   }
 
@@ -71,7 +73,7 @@
     background: orange !important;
   }
 
-  /* fullscreen button */
+  /* ===== FULLSCREEN BUTTON ===== */
   #fsBtn {
     position: fixed;
     right: 15px;
@@ -98,7 +100,7 @@
 
   <img src="bg.jpg">
 
-  <!-- buttons -->
+  <!-- 11 BUTTONS -->
   <button class="dragBtn" style="top:10%; left:10%;"><span contenteditable="false">1</span></button>
   <button class="dragBtn" style="top:10%; left:20%;"><span contenteditable="false">2</span></button>
   <button class="dragBtn" style="top:20%; left:10%;"><span contenteditable="false">3</span></button>
@@ -120,14 +122,40 @@ const container = document.getElementById("container");
 const buttons = document.querySelectorAll(".dragBtn");
 const fsBtn = document.getElementById("fsBtn");
 
+/* ================= ROTATION ================= */
+async function lockLandscape() {
+  try {
+    if (screen.orientation && screen.orientation.lock) {
+      await screen.orientation.lock("landscape");
+    }
+  } catch (e) {
+    console.log("Lock failed:", e);
+  }
+}
+
+function unlockRotation() {
+  try {
+    if (screen.orientation && screen.orientation.unlock) {
+      screen.orientation.unlock();
+    }
+  } catch (e) {}
+}
+
 /* ================= FULLSCREEN ================= */
 async function toggleFS() {
   if (!document.fullscreenElement) {
     await document.documentElement.requestFullscreen();
     container.classList.add("fs");
+
+    // 👉 force landscape
+    lockLandscape();
+
   } else {
     await document.exitFullscreen();
     container.classList.remove("fs");
+
+    // 👉 unlock rotation
+    unlockRotation();
   }
 }
 
@@ -169,10 +197,12 @@ buttons.forEach(btn => {
     dragging = false;
   }
 
+  // mouse
   btn.addEventListener("mousedown", e => start(e.clientX, e.clientY, e));
   document.addEventListener("mousemove", e => move(e.clientX, e.clientY));
   document.addEventListener("mouseup", stop);
 
+  // touch
   btn.addEventListener("touchstart", e => {
     const t = e.touches[0];
     start(t.clientX, t.clientY, e);
@@ -185,11 +215,20 @@ buttons.forEach(btn => {
 
   document.addEventListener("touchend", stop);
 
-  /* edit */
+  /* ================= EDIT ================= */
   function edit() {
     btn.classList.add("editing");
     text.contentEditable = "true";
     text.focus();
+
+    const range = document.createRange();
+    const sel = window.getSelection();
+
+    range.selectNodeContents(text);
+    range.collapse(false);
+
+    sel.removeAllRanges();
+    sel.addRange(range);
   }
 
   function stopEdit() {
