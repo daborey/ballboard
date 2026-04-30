@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Mobile Drag Rename Fix</title>
+<title>Stable Mobile Buttons</title>
 
 <style>
   * { box-sizing: border-box; }
@@ -11,18 +11,7 @@
     margin: 0;
     overflow: hidden;
     background: black;
-  }
-
-  #start {
-    position: fixed;
-    inset: 0;
-    background: black;
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    z-index: 99999;
+    touch-action: none;
   }
 
   #container {
@@ -37,7 +26,7 @@
     object-fit: contain;
   }
 
-  .dragBtn {
+  .btn {
     position: absolute;
     z-index: 10;
 
@@ -54,16 +43,30 @@
     align-items: center;
     justify-content: center;
 
-    touch-action: none;
     user-select: none;
+    touch-action: none;
   }
 
-  .dragBtn span {
+  .btn span {
     outline: none;
   }
 
   .editing {
     background: orange !important;
+  }
+
+  #start {
+    position: fixed;
+    inset: 0;
+    background: black;
+    color: white;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 22px;
+    z-index: 99999;
   }
 </style>
 </head>
@@ -76,23 +79,23 @@
 
   <img id="bg" src="bg.jpg">
 
-  <button class="dragBtn" style="top:10%; left:10%;"><span>1</span></button>
-  <button class="dragBtn" style="top:10%; left:20%;"><span>2</span></button>
-  <button class="dragBtn" style="top:20%; left:10%;"><span>3</span></button>
-  <button class="dragBtn" style="top:20%; left:20%;"><span>4</span></button>
-  <button class="dragBtn" style="top:30%; left:10%;"><span>5</span></button>
-  <button class="dragBtn" style="top:30%; left:20%;"><span>6</span></button>
-  <button class="dragBtn" style="top:40%; left:10%;"><span>7</span></button>
-  <button class="dragBtn" style="top:40%; left:20%;"><span>8</span></button>
-  <button class="dragBtn" style="top:50%; left:10%;"><span>9</span></button>
-  <button class="dragBtn" style="top:50%; left:20%;"><span>10</span></button>
-  <button class="dragBtn" style="top:60%; left:10%;"><span>11</span></button>
+  <button class="btn" style="top:10%; left:10%;"><span>1</span></button>
+  <button class="btn" style="top:10%; left:20%;"><span>2</span></button>
+  <button class="btn" style="top:20%; left:10%;"><span>3</span></button>
+  <button class="btn" style="top:20%; left:20%;"><span>4</span></button>
+  <button class="btn" style="top:30%; left:10%;"><span>5</span></button>
+  <button class="btn" style="top:30%; left:20%;"><span>6</span></button>
+  <button class="btn" style="top:40%; left:10%;"><span>7</span></button>
+  <button class="btn" style="top:40%; left:20%;"><span>8</span></button>
+  <button class="btn" style="top:50%; left:10%;"><span>9</span></button>
+  <button class="btn" style="top:50%; left:20%;"><span>10</span></button>
+  <button class="btn" style="top:60%; left:10%;"><span>11</span></button>
 
 </div>
 
 <script>
 const start = document.getElementById("start");
-const buttons = document.querySelectorAll(".dragBtn");
+const buttons = document.querySelectorAll(".btn");
 
 /* ================= START ================= */
 start.addEventListener("click", () => {
@@ -105,7 +108,7 @@ start.addEventListener("click", () => {
   }
 });
 
-/* ================= DRAG + RENAME ================= */
+/* ================= DRAG ================= */
 buttons.forEach(btn => {
   const text = btn.querySelector("span");
 
@@ -113,14 +116,11 @@ buttons.forEach(btn => {
   let offsetX = 0;
   let offsetY = 0;
 
-  /* ===== DRAG ===== */
-  btn.addEventListener("mousedown", startDrag);
   btn.addEventListener("touchstart", startDrag, {passive:false});
+  btn.addEventListener("mousedown", startDrag);
 
   function startDrag(e) {
     if (btn.classList.contains("editing")) return;
-
-    dragging = true;
 
     const p = e.touches ? e.touches[0] : e;
     const r = btn.getBoundingClientRect();
@@ -128,11 +128,12 @@ buttons.forEach(btn => {
     offsetX = p.clientX - r.left;
     offsetY = p.clientY - r.top;
 
+    dragging = true;
     e.preventDefault();
   }
 
-  document.addEventListener("mousemove", move);
   document.addEventListener("touchmove", move, {passive:false});
+  document.addEventListener("mousemove", move);
 
   function move(e) {
     if (!dragging) return;
@@ -149,29 +150,24 @@ buttons.forEach(btn => {
     e.preventDefault();
   }
 
-  document.addEventListener("mouseup", stop);
   document.addEventListener("touchend", stop);
+  document.addEventListener("mouseup", stop);
 
   function stop() {
     dragging = false;
   }
 
-  /* ================= RENAME FIX ================= */
+  /* ================= MOBILE SAFE RENAME ================= */
+  let lastTap = 0;
 
-  let pressTimer;
+  btn.addEventListener("click", () => {
+    const now = Date.now();
 
-  // PC rename
-  btn.addEventListener("dblclick", enableEdit);
-
-  // MOBILE long press rename
-  btn.addEventListener("touchstart", () => {
-    pressTimer = setTimeout(() => {
+    if (now - lastTap < 400) {
       enableEdit();
-    }, 600);
-  });
+    }
 
-  btn.addEventListener("touchend", () => {
-    clearTimeout(pressTimer);
+    lastTap = now;
   });
 
   function enableEdit() {
@@ -188,14 +184,10 @@ buttons.forEach(btn => {
     sel.addRange(range);
   }
 
-  function disableEdit() {
-    btn.classList.remove("editing");
-    text.contentEditable = "false";
-  }
-
   document.addEventListener("click", (e) => {
     if (!btn.contains(e.target)) {
-      disableEdit();
+      btn.classList.remove("editing");
+      text.contentEditable = "false";
     }
   });
 
