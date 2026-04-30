@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>App Mode With Rename Fixed</title>
+<title>Mobile Drag Rename Fix</title>
 
 <style>
   * { box-sizing: border-box; }
@@ -13,43 +13,36 @@
     background: black;
   }
 
-  /* START SCREEN */
   #start {
     position: fixed;
     inset: 0;
     background: black;
     color: white;
-
     display: flex;
     align-items: center;
     justify-content: center;
-
     font-size: 24px;
     z-index: 99999;
   }
 
-  /* MAIN */
   #container {
     width: 100vw;
     height: 100vh;
     position: relative;
-    background: black;
   }
 
-  /* IMAGE NO CROP */
   #bg {
     width: 100%;
     height: 100%;
     object-fit: contain;
   }
 
-  /* BUTTONS */
   .dragBtn {
     position: absolute;
     z-index: 10;
 
-    width: clamp(45px, 6vw, 80px);
-    height: clamp(45px, 6vw, 80px);
+    width: 60px;
+    height: 60px;
 
     border-radius: 50%;
     border: none;
@@ -61,8 +54,8 @@
     align-items: center;
     justify-content: center;
 
-    user-select: none;
     touch-action: none;
+    user-select: none;
   }
 
   .dragBtn span {
@@ -71,25 +64,6 @@
 
   .editing {
     background: orange !important;
-  }
-
-  /* fullscreen button */
-  #fsBtn {
-    position: fixed;
-    right: 15px;
-    bottom: 15px;
-
-    width: 55px;
-    height: 55px;
-
-    border-radius: 50%;
-    border: none;
-
-    background: rgba(0,0,0,0.6);
-    color: white;
-    font-size: 20px;
-
-    z-index: 99999;
   }
 </style>
 </head>
@@ -102,7 +76,6 @@
 
   <img id="bg" src="bg.jpg">
 
-  <!-- BUTTONS (WITH TEXT SPANS FOR RENAME) -->
   <button class="dragBtn" style="top:10%; left:10%;"><span>1</span></button>
   <button class="dragBtn" style="top:10%; left:20%;"><span>2</span></button>
   <button class="dragBtn" style="top:20%; left:10%;"><span>3</span></button>
@@ -117,34 +90,18 @@
 
 </div>
 
-<button id="fsBtn">⛶</button>
-
 <script>
 const start = document.getElementById("start");
 const buttons = document.querySelectorAll(".dragBtn");
 
 /* ================= START ================= */
 start.addEventListener("click", () => {
-
   start.style.display = "none";
 
-  const fs = document.documentElement.requestFullscreen?.();
+  document.documentElement.requestFullscreen?.();
 
-  if (fs && fs.then) {
-    fs.then(() => {
-      if (screen.orientation && screen.orientation.lock) {
-        screen.orientation.lock("landscape").catch(()=>{});
-      }
-    }).catch(()=>{});
-  }
-});
-
-/* ================= FULLSCREEN BUTTON ================= */
-document.getElementById("fsBtn").addEventListener("click", () => {
-  if (!document.fullscreenElement) {
-    document.documentElement.requestFullscreen();
-  } else {
-    document.exitFullscreen();
+  if (screen.orientation?.lock) {
+    screen.orientation.lock("landscape").catch(()=>{});
   }
 });
 
@@ -156,7 +113,7 @@ buttons.forEach(btn => {
   let offsetX = 0;
   let offsetY = 0;
 
-  /* ===== DRAG START ===== */
+  /* ===== DRAG ===== */
   btn.addEventListener("mousedown", startDrag);
   btn.addEventListener("touchstart", startDrag, {passive:false});
 
@@ -174,7 +131,6 @@ buttons.forEach(btn => {
     e.preventDefault();
   }
 
-  /* ===== MOVE ===== */
   document.addEventListener("mousemove", move);
   document.addEventListener("touchmove", move, {passive:false});
 
@@ -200,13 +156,29 @@ buttons.forEach(btn => {
     dragging = false;
   }
 
-  /* ================= RENAME (FIXED) ================= */
+  /* ================= RENAME FIX ================= */
+
+  let pressTimer;
+
+  // PC rename
+  btn.addEventListener("dblclick", enableEdit);
+
+  // MOBILE long press rename
+  btn.addEventListener("touchstart", () => {
+    pressTimer = setTimeout(() => {
+      enableEdit();
+    }, 600);
+  });
+
+  btn.addEventListener("touchend", () => {
+    clearTimeout(pressTimer);
+  });
+
   function enableEdit() {
     btn.classList.add("editing");
     text.contentEditable = "true";
     text.focus();
 
-    // move cursor to end
     const range = document.createRange();
     range.selectNodeContents(text);
     range.collapse(false);
@@ -221,13 +193,12 @@ buttons.forEach(btn => {
     text.contentEditable = "false";
   }
 
-  btn.addEventListener("dblclick", enableEdit);
-
   document.addEventListener("click", (e) => {
     if (!btn.contains(e.target)) {
       disableEdit();
     }
   });
+
 });
 </script>
 
