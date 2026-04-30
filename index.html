@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Stable App</title>
+<title>Full Stable App</title>
 
 <style>
 body{
@@ -11,7 +11,6 @@ body{
  background:black;
 }
 
-/* FULLSCREEN BUTTON */
 #fsBtn{
  position:fixed;
  right:15px;
@@ -25,14 +24,12 @@ body{
  z-index:9999;
 }
 
-/* CONTAINER */
 #c{
  position:relative;
  width:100vw;
  height:100vh;
 }
 
-/* IMAGE NO CROP */
 #bg{
  width:100%;
  height:100%;
@@ -40,7 +37,6 @@ body{
  background:black;
 }
 
-/* BUTTONS */
 .b{
  position:absolute;
  width:60px;
@@ -85,7 +81,7 @@ body{
 
 <script>
 
-/* FULLSCREEN */
+/* ===== FULLSCREEN ===== */
 fsBtn.onclick=async()=>{
  if(!document.fullscreenElement)
   document.documentElement.requestFullscreen()
@@ -93,48 +89,69 @@ fsBtn.onclick=async()=>{
   document.exitFullscreen()
 }
 
-/* DRAG */
+/* ===== DRAG SYSTEM (MOUSE + TOUCH FIXED) ===== */
 let drag=0,ox=0,oy=0
 
 document.querySelectorAll(".b").forEach(b=>{
 const t=b.querySelector("span")
 
+function start(x,y){
+ if(b.classList.contains("edit"))return
+ ox=x-b.offsetLeft
+ oy=y-b.offsetTop
+ drag=1
+}
+
+function move(x,y){
+ if(!drag)return
+ let r=c.getBoundingClientRect()
+ b.style.left=(x-r.left-ox)/r.width*100+"%"
+ b.style.top=(y-r.top-oy)/r.height*100+"%"
+}
+
+function stop(){
+ drag=0
+}
+
+/* TOUCH */
 b.ontouchstart=e=>{
-if(b.classList.contains("edit"))return
 let p=e.touches[0]
-ox=p.clientX-b.offsetLeft
-oy=p.clientY-b.offsetTop
-drag=1
+start(p.clientX,p.clientY)
 }
 
-b.ontouchmove=e=>{
-if(!drag)return
-let p=e.touches[0],r=c.getBoundingClientRect()
-b.style.left=(p.clientX-r.left-ox)/r.width*100+"%"
-b.style.top=(p.clientY-r.top-oy)/r.height*100+"%"
+document.ontouchmove=e=>{
+let p=e.touches[0]
+move(p.clientX,p.clientY)
 }
 
-b.ontouchend=()=>drag=0
+document.ontouchend=stop
 
-/* DOUBLE TAP EDIT + CURSOR FIX */
+/* MOUSE */
+b.onmousedown=e=>start(e.clientX,e.clientY)
+
+document.onmousemove=e=>move(e.clientX,e.clientY)
+
+document.onmouseup=stop
+
+/* ===== DOUBLE TAP / CLICK EDIT ===== */
 let last=0
 
 b.onclick=()=>{
 let now=Date.now()
 
 if(now-last<300){
-  b.classList.add("edit")
-  t.contentEditable=true
-  t.focus()
+ b.classList.add("edit")
+ t.contentEditable=true
+ t.focus()
 
-  // ✅ CURSOR GO TO END (RIGHT SIDE FIX)
-  let range=document.createRange()
-  range.selectNodeContents(t)
-  range.collapse(false)
+ /* cursor FIX (go to end) */
+ let range=document.createRange()
+ range.selectNodeContents(t)
+ range.collapse(false)
 
-  let sel=window.getSelection()
-  sel.removeAllRanges()
-  sel.addRange(range)
+ let sel=window.getSelection()
+ sel.removeAllRanges()
+ sel.addRange(range)
 }
 
 last=now
@@ -143,8 +160,8 @@ last=now
 /* EXIT EDIT */
 document.addEventListener("click",e=>{
 if(!b.contains(e.target)){
-  b.classList.remove("edit")
-  t.contentEditable=false
+ b.classList.remove("edit")
+ t.contentEditable=false
 }
 })
 
