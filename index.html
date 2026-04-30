@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Fixed Size App</title>
+<title>Fullscreen Size Control</title>
 
 <style>
 html,body{
@@ -40,11 +40,11 @@ html,body{
  background:black;
 }
 
-/* 🔥 FIXED BUTTON SIZE */
+/* ===== NORMAL SIZE ===== */
 .b{
  position:absolute;
- width:85px;      /* fixed */
- height:85px;     /* fixed */
+ width:85px;
+ height:85px;
 
  border-radius:50%;
  border:0;
@@ -59,10 +59,19 @@ html,body{
  touch-action:none;
 }
 
-/* 🔥 FIXED TEXT SIZE */
 .b span{
- font-size:20px;  /* fixed */
+ font-size:20px;
  outline:none;
+}
+
+/* ===== SMALLER AFTER FULLSCREEN ===== */
+.fullscreen .b{
+ width:70px;
+ height:70px;
+}
+
+.fullscreen .b span{
+ font-size:16px;
 }
 
 .edit{background:orange!important}
@@ -93,13 +102,23 @@ html,body{
 
 <script>
 
-/* FULLSCREEN */
+/* FULLSCREEN TOGGLE */
 fsBtn.onclick=async()=>{
- if(!document.fullscreenElement)
-  document.documentElement.requestFullscreen()
- else
-  document.exitFullscreen()
+ if(!document.fullscreenElement){
+  await document.documentElement.requestFullscreen()
+ }else{
+  await document.exitFullscreen()
+ }
 }
+
+/* 🔥 DETECT FULLSCREEN CHANGE */
+document.addEventListener("fullscreenchange",()=>{
+ if(document.fullscreenElement){
+  document.body.classList.add("fullscreen")
+ }else{
+  document.body.classList.remove("fullscreen")
+ }
+})
 
 /* DRAG */
 document.querySelectorAll(".b").forEach(b=>{
