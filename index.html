@@ -2,23 +2,16 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Stable App Fixed Size</title>
+<title>Ultimate Stable App</title>
 
 <style>
-
-/* ===== VIEWPORT FIX (IMPORTANT) ===== */
 html,body{
-  width:100%;
-  height:100%;
-  margin:0;
-  overflow:hidden;
+ margin:0;
+ overflow:hidden;
+ background:black;
 }
 
-body{
-  background:black;
-}
-
-/* ===== FULLSCREEN BUTTON ===== */
+/* FULLSCREEN BUTTON */
 #fsBtn{
  position:fixed;
  right:15px;
@@ -32,15 +25,13 @@ body{
  z-index:9999;
 }
 
-/* ===== MAIN CONTAINER (FIXED VH ISSUE) ===== */
+/* CONTAINER */
 #c{
  position:relative;
  width:100vw;
- height:100vh;
- height:100dvh; /* 🔥 FIX mobile jump issue */
 }
 
-/* ===== IMAGE (NO CROP) ===== */
+/* IMAGE */
 #bg{
  width:100%;
  height:100%;
@@ -48,7 +39,7 @@ body{
  background:black;
 }
 
-/* ===== BUTTONS (RESPONSIVE SIZE FIX) ===== */
+/* BUTTONS */
 .b{
  position:absolute;
  width:clamp(40px,10vw,70px);
@@ -69,7 +60,6 @@ body{
 
 .b span{outline:none}
 .edit{background:orange!important}
-
 </style>
 </head>
 
@@ -97,15 +87,24 @@ body{
 
 <script>
 
+/* ===== FORCE REAL HEIGHT (KEY FIX) ===== */
+function setHeight(){
+ document.getElementById("c").style.height = window.innerHeight + "px"
+}
+setHeight()
+window.addEventListener("resize", setHeight)
+
 /* ===== FULLSCREEN ===== */
 fsBtn.onclick=async()=>{
  if(!document.fullscreenElement)
   document.documentElement.requestFullscreen()
  else
   document.exitFullscreen()
+
+ setTimeout(setHeight,300) // fix after fullscreen change
 }
 
-/* ===== POINTER DRAG (STABLE ALL DEVICES) ===== */
+/* ===== POINTER DRAG ===== */
 document.querySelectorAll(".b").forEach(b=>{
 
 let active=false,ox=0,oy=0
@@ -136,9 +135,7 @@ b.addEventListener("pointermove",(e)=>{
  b.style.top=(y/c.height)*100+"%"
 })
 
-b.addEventListener("pointerup",()=>{
- active=false
-})
+b.addEventListener("pointerup",()=>active=false)
 
 /* ===== DOUBLE TAP / CLICK EDIT ===== */
 let last=0
@@ -151,7 +148,6 @@ if(now-last<300){
  t.contentEditable=true
  t.focus()
 
- /* cursor FIX → go to end */
  let range=document.createRange()
  range.selectNodeContents(t)
  range.collapse(false)
@@ -164,7 +160,7 @@ if(now-last<300){
 last=now
 }
 
-/* ===== EXIT EDIT ===== */
+/* EXIT EDIT */
 document.addEventListener("click",e=>{
 if(!b.contains(e.target)){
  b.classList.remove("edit")
@@ -173,7 +169,6 @@ if(!b.contains(e.target)){
 })
 
 })
-
 </script>
 
 </body>
