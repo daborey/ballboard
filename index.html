@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Start Auto App Mode</title>
+<title>Stable App Mode Fullscreen</title>
 
 <style>
   * { box-sizing: border-box; }
@@ -36,14 +36,14 @@
     background: black;
   }
 
-  /* IMAGE NO CROP */
+  /* ===== IMAGE NO CROP ===== */
   #bg {
     width: 100%;
     height: 100%;
     object-fit: contain;
   }
 
-  /* buttons always visible */
+  /* ===== BUTTONS ALWAYS VISIBLE ===== */
   .dragBtn {
     position: absolute;
     z-index: 10;
@@ -57,21 +57,45 @@
     background: #4CAF50;
     color: white;
 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
     touch-action: none;
     user-select: none;
+  }
+
+  /* fullscreen button */
+  #fsBtn {
+    position: fixed;
+    right: 15px;
+    bottom: 15px;
+
+    width: 55px;
+    height: 55px;
+
+    border-radius: 50%;
+    border: none;
+
+    background: rgba(0,0,0,0.6);
+    color: white;
+    font-size: 20px;
+
+    z-index: 99999;
   }
 </style>
 </head>
 
 <body>
 
-<!-- START SCREEN -->
+<!-- START -->
 <div id="start">Tap to Start</div>
 
 <div id="container">
 
   <img id="bg" src="bg.jpg">
 
+  <!-- 11 BUTTONS -->
   <button class="dragBtn" style="top:10%; left:10%;">1</button>
   <button class="dragBtn" style="top:10%; left:20%;">2</button>
   <button class="dragBtn" style="top:20%; left:10%;">3</button>
@@ -86,27 +110,41 @@
 
 </div>
 
+<button id="fsBtn">⛶</button>
+
 <script>
 const start = document.getElementById("start");
-const container = document.getElementById("container");
+const fsBtn = document.getElementById("fsBtn");
 const buttons = document.querySelectorAll(".dragBtn");
 
-/* ================= START FLOW ================= */
-start.addEventListener("click", async () => {
+/* ================= START FLOW (STABLE) ================= */
+start.addEventListener("click", () => {
 
   start.style.display = "none";
 
-  try {
-    // fullscreen
-    await document.documentElement.requestFullscreen();
+  // fullscreen (must be direct gesture)
+  const request = document.documentElement.requestFullscreen?.();
 
-    // landscape lock (Android only)
+  if (request && request.then) {
+    request.then(() => {
+      // orientation lock (Android only)
+      if (screen.orientation && screen.orientation.lock) {
+        screen.orientation.lock("landscape").catch(() => {});
+      }
+    }).catch(() => {});
+  } else {
     if (screen.orientation && screen.orientation.lock) {
-      await screen.orientation.lock("landscape");
+      screen.orientation.lock("landscape").catch(() => {});
     }
+  }
+});
 
-  } catch (e) {
-    console.log(e);
+/* ================= FULLSCREEN BUTTON ================= */
+fsBtn.addEventListener("click", () => {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen();
+  } else {
+    document.exitFullscreen();
   }
 });
 
@@ -116,10 +154,10 @@ buttons.forEach(btn => {
   let offsetX = 0;
   let offsetY = 0;
 
-  btn.addEventListener("mousedown", startDrag);
-  btn.addEventListener("touchstart", startDrag, {passive:false});
+  btn.addEventListener("mousedown", start);
+  btn.addEventListener("touchstart", start, {passive:false});
 
-  function startDrag(e) {
+  function start(e) {
     dragging = true;
 
     const p = e.touches ? e.touches[0] : e;
@@ -138,7 +176,7 @@ buttons.forEach(btn => {
     if (!dragging) return;
 
     const p = e.touches ? e.touches[0] : e;
-    const r = container.getBoundingClientRect();
+    const r = document.getElementById("container").getBoundingClientRect();
 
     let x = p.clientX - r.left - offsetX;
     let y = p.clientY - r.top - offsetY;
