@@ -1,260 +1,92 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<title>Stable Drag + Rename + Fullscreen</title>
+<title>Mini App</title>
 
 <style>
-  * {
-    box-sizing: border-box;
-  }
+body{margin:0;overflow:hidden;background:#000}
+#start,#fs{position:fixed;z-index:9999}
+#start{inset:0;display:flex;align-items:center;justify-content:center;color:#fff}
+#fs{right:10px;bottom:10px;width:50px;height:50px;border-radius:50%;background:#0008;color:#fff}
 
-  body {
-    margin: 0;
-    overflow: hidden;
-    background: black;
-  }
+#c{position:relative;width:100vw;height:100vh}
+#bg{width:100%;height:100%;object-fit:cover}
 
-  /* ===== START SCREEN ===== */
-  #start {
-    position: fixed;
-    inset: 0;
-    background: black;
-    color: white;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    font-size: 24px;
-    z-index: 999999;
-  }
-
-  /* ===== CONTAINER ===== */
-  #container {
-    width: 100vw;
-    height: 100vh;
-    position: relative;
-  }
-
-  /* IMAGE NO CROP */
-  #bg {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-  }
-
-  /* ===== BUTTONS ===== */
-  .btn {
-    position: absolute;
-    z-index: 10;
-
-    width: 60px;
-    height: 60px;
-
-    border-radius: 50%;
-    border: none;
-
-    background: #4CAF50;
-    color: white;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    user-select: none;
-    touch-action: none;
-  }
-
-  .btn span {
-    outline: none;
-  }
-
-  .editing {
-    background: orange !important;
-  }
-
-  /* ===== FULLSCREEN BUTTON ===== */
-  #fsBtn {
-    position: fixed;
-    right: 15px;
-    bottom: 15px;
-
-    width: 55px;
-    height: 55px;
-
-    border-radius: 50%;
-    border: none;
-
-    background: rgba(0,0,0,0.6);
-    color: white;
-    font-size: 20px;
-
-    z-index: 9999999;
-  }
+.b{position:absolute;width:60px;height:60px;border-radius:50%;border:0;background:#4caf50;color:#fff;touch-action:none;display:flex;align-items:center;justify-content:center}
+.b span{outline:none}
+.e{background:orange}
 </style>
 </head>
 
 <body>
 
-<!-- START -->
 <div id="start">Tap to Start</div>
+<button id="fs">⛶</button>
 
-<div id="container">
-
+<div id="c">
   <img id="bg" src="bg.jpg">
 
-  <!-- 11 BUTTONS -->
-  <button class="btn" style="top:10%; left:10%;"><span>1</span></button>
-  <button class="btn" style="top:10%; left:20%;"><span>2</span></button>
-  <button class="btn" style="top:20%; left:10%;"><span>3</span></button>
-  <button class="btn" style="top:20%; left:20%;"><span>4</span></button>
-  <button class="btn" style="top:30%; left:10%;"><span>5</span></button>
-  <button class="btn" style="top:30%; left:20%;"><span>6</span></button>
-  <button class="btn" style="top:40%; left:10%;"><span>7</span></button>
-  <button class="btn" style="top:40%; left:20%;"><span>8</span></button>
-  <button class="btn" style="top:50%; left:10%;"><span>9</span></button>
-  <button class="btn" style="top:50%; left:20%;"><span>10</span></button>
-  <button class="btn" style="top:60%; left:10%;"><span>11</span></button>
-
+  <button class="b" style="top:10%;left:10%"><span>1</span></button>
+  <button class="b" style="top:10%;left:20%"><span>2</span></button>
+  <button class="b" style="top:20%;left:10%"><span>3</span></button>
+  <button class="b" style="top:20%;left:20%"><span>4</span></button>
+  <button class="b" style="top:30%;left:10%"><span>5</span></button>
+  <button class="b" style="top:30%;left:20%"><span>6</span></button>
+  <button class="b" style="top:40%;left:10%"><span>7</span></button>
+  <button class="b" style="top:40%;left:20%"><span>8</span></button>
+  <button class="b" style="top:50%;left:10%"><span>9</span></button>
+  <button class="b" style="top:50%;left:20%"><span>10</span></button>
+  <button class="b" style="top:60%;left:10%"><span>11</span></button>
 </div>
 
-<button id="fsBtn">⛶</button>
-
 <script>
-const start = document.getElementById("start");
-const fsBtn = document.getElementById("fsBtn");
-const buttons = document.querySelectorAll(".btn");
+start.onclick=()=>{start.remove();document.documentElement.requestFullscreen?.()}
 
-/* ================= START ================= */
-start.addEventListener("click", () => {
-  start.style.display = "none";
+fs.onclick=async()=>{
+ if(!document.fullscreenElement) await document.documentElement.requestFullscreen()
+ else document.exitFullscreen()
+}
 
-  document.documentElement.requestFullscreen?.();
+let d=0,x=0,y=0
 
-  if (screen.orientation?.lock) {
-    screen.orientation.lock("landscape").catch(()=>{});
+document.querySelectorAll(".b").forEach(b=>{
+ let t=b.querySelector("span")
+
+ b.ontouchstart=e=>{
+  if(b.classList.contains("e"))return
+  let p=e.touches[0]
+  x=p.clientX-b.offsetLeft
+  y=p.clientY-b.offsetTop
+  d=1
+ }
+
+ b.ontouchend=()=>d=0
+ b.ontouchmove=e=>{
+  if(!d)return
+  let p=e.touches[0],c=document.getElementById("c").getBoundingClientRect()
+  b.style.left=(p.clientX-c.left-x)/c.width*100+"%"
+  b.style.top=(p.clientY-c.top-y)/c.height*100+"%"
+ }
+
+ let last=0
+ b.onclick=()=>{
+  let n=Date.now()
+  if(n-last<300){
+    b.classList.add("e")
+    t.contentEditable=true
+    t.focus()
   }
-});
+  last=n
+ }
 
-/* ================= FULLSCREEN BUTTON ================= */
-fsBtn.addEventListener("click", async () => {
-  try {
-    if (!document.fullscreenElement) {
-      await document.documentElement.requestFullscreen();
-
-      if (screen.orientation?.lock) {
-        screen.orientation.lock("landscape").catch(()=>{});
-      }
-    } else {
-      await document.exitFullscreen();
-    }
-  } catch (e) {}
-});
-
-/* ================= DRAG + RENAME ================= */
-buttons.forEach(btn => {
-  const text = btn.querySelector("span");
-
-  let dragging = false;
-  let offsetX = 0;
-  let offsetY = 0;
-
-  /* ===== DRAG ===== */
-  btn.addEventListener("touchstart", startDrag, {passive:false});
-  btn.addEventListener("mousedown", startDrag);
-
-  function startDrag(e) {
-    if (btn.classList.contains("editing")) return;
-
-    const p = e.touches ? e.touches[0] : e;
-    const r = btn.getBoundingClientRect();
-
-    offsetX = p.clientX - r.left;
-    offsetY = p.clientY - r.top;
-
-    dragging = true;
-    e.preventDefault();
+ document.addEventListener("click",e=>{
+  if(!b.contains(e.target)){
+    b.classList.remove("e")
+    t.contentEditable=false
   }
-
-  document.addEventListener("touchmove", move, {passive:false});
-  document.addEventListener("mousemove", move);
-
-  function move(e) {
-    if (!dragging) return;
-
-    const p = e.touches ? e.touches[0] : e;
-    const r = document.getElementById("container").getBoundingClientRect();
-
-    let x = p.clientX - r.left - offsetX;
-    let y = p.clientY - r.top - offsetY;
-
-    btn.style.left = (x / r.width) * 100 + "%";
-    btn.style.top = (y / r.height) * 100 + "%";
-
-    e.preventDefault();
-  }
-
-  document.addEventListener("mouseup", stop);
-  document.addEventListener("touchend", stop);
-
-  function stop() {
-    dragging = false;
-  }
-
-  /* ================= SAFE DOUBLE TAP ================= */
-  let lastTap = 0;
-
-  btn.addEventListener("click", () => {
-    if (dragging) return;
-
-    const now = Date.now();
-
-    if (now - lastTap < 350) {
-      enableEdit();
-    }
-
-    lastTap = now;
-  });
-
-  btn.addEventListener("dblclick", enableEdit);
-
-  function enableEdit() {
-    btn.classList.add("editing");
-
-    text.contentEditable = "true";
-    text.focus();
-
-    const range = document.createRange();
-    range.selectNodeContents(text);
-    range.collapse(false);
-
-    const sel = window.getSelection();
-    sel.removeAllRanges();
-    sel.addRange(range);
-  }
-
-  function disableEdit() {
-    btn.classList.remove("editing");
-    text.contentEditable = "false";
-  }
-
-  document.addEventListener("touchstart", (e) => {
-    if (!btn.contains(e.target)) disableEdit();
-  });
-
-  document.addEventListener("mousedown", (e) => {
-    if (!btn.contains(e.target)) disableEdit();
-  });
-
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-      disableEdit();
-      window.getSelection()?.removeAllRanges();
-    }
-  });
-
-});
+})
+})
 </script>
 
 </body>
