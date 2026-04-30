@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Full Stable App</title>
+<title>Stable Drag Fix</title>
 
 <style>
 body{
@@ -48,8 +48,8 @@ body{
  display:flex;
  justify-content:center;
  align-items:center;
- touch-action:none;
  user-select:none;
+ touch-action:none;
 }
 
 .b span{outline:none}
@@ -81,7 +81,7 @@ body{
 
 <script>
 
-/* ===== FULLSCREEN ===== */
+/* FULLSCREEN */
 fsBtn.onclick=async()=>{
  if(!document.fullscreenElement)
   document.documentElement.requestFullscreen()
@@ -89,52 +89,43 @@ fsBtn.onclick=async()=>{
   document.exitFullscreen()
 }
 
-/* ===== DRAG SYSTEM (MOUSE + TOUCH FIXED) ===== */
-let drag=0,ox=0,oy=0
-
+/* ===== POINTER DRAG (FIXED) ===== */
 document.querySelectorAll(".b").forEach(b=>{
-const t=b.querySelector("span")
 
-function start(x,y){
+let active=false,ox=0,oy=0
+
+b.addEventListener("pointerdown",(e)=>{
  if(b.classList.contains("edit"))return
- ox=x-b.offsetLeft
- oy=y-b.offsetTop
- drag=1
-}
 
-function move(x,y){
- if(!drag)return
- let r=c.getBoundingClientRect()
- b.style.left=(x-r.left-ox)/r.width*100+"%"
- b.style.top=(y-r.top-oy)/r.height*100+"%"
-}
+ const r=b.getBoundingClientRect()
+ const c=document.getElementById("c").getBoundingClientRect()
 
-function stop(){
- drag=0
-}
+ ox=e.clientX-r.left
+ oy=e.clientY-r.top
 
-/* TOUCH */
-b.ontouchstart=e=>{
-let p=e.touches[0]
-start(p.clientX,p.clientY)
-}
+ active=true
+ b.setPointerCapture(e.pointerId)
+})
 
-document.ontouchmove=e=>{
-let p=e.touches[0]
-move(p.clientX,p.clientY)
-}
+b.addEventListener("pointermove",(e)=>{
+ if(!active)return
 
-document.ontouchend=stop
+ const c=document.getElementById("c").getBoundingClientRect()
 
-/* MOUSE */
-b.onmousedown=e=>start(e.clientX,e.clientY)
+ let x=e.clientX-c.left-ox
+ let y=e.clientY-c.top-oy
 
-document.onmousemove=e=>move(e.clientX,e.clientY)
+ b.style.left=(x/c.width)*100+"%"
+ b.style.top=(y/c.height)*100+"%"
+})
 
-document.onmouseup=stop
+b.addEventListener("pointerup",()=>{
+ active=false
+})
 
-/* ===== DOUBLE TAP / CLICK EDIT ===== */
+/* DOUBLE TAP EDIT */
 let last=0
+const t=b.querySelector("span")
 
 b.onclick=()=>{
 let now=Date.now()
@@ -144,7 +135,6 @@ if(now-last<300){
  t.contentEditable=true
  t.focus()
 
- /* cursor FIX (go to end) */
  let range=document.createRange()
  range.selectNodeContents(t)
  range.collapse(false)
