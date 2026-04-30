@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Scaled App</title>
+<title>Fixed Scale App</title>
 
 <style>
 html,body{
@@ -40,7 +40,7 @@ html,body{
  background:black;
 }
 
-/* BIGGER BUTTONS (BASE SIZE) */
+/* BUTTONS */
 .b{
  position:absolute;
  width:80px;
@@ -92,43 +92,24 @@ html,body{
 
 <script>
 
-/* ===== HEIGHT FIX ===== */
+/* ===== FIX HEIGHT ===== */
 function setHeight(){
  c.style.height = window.innerHeight + "px"
 }
 setHeight()
-window.addEventListener("resize", setHeight)
 
-/* ===== SCALE FIX (YOUR IDEA, BUT SMART) ===== */
-function applyScale(){
- let scale = window.innerHeight / document.documentElement.clientHeight
+/* ===== APPLY SCALE ONCE (ONLY BEFORE FULLSCREEN) ===== */
+c.style.transform = "scale(1.15)"   // 👈 adjust if needed (1.1 ~ 1.2)
 
- // increase a bit so it matches fullscreen look
- if(!document.fullscreenElement){
-   c.style.transform = "scale(1.15)"  // tweak this if needed (1.1 ~ 1.2)
- }else{
-   c.style.transform = "scale(1)"
- }
-}
-
-applyScale()
-window.addEventListener("resize", applyScale)
-
-/* FULLSCREEN */
+/* ===== FULLSCREEN (NO SCALE CHANGE) ===== */
 fsBtn.onclick=async()=>{
- if(!document.fullscreenElement){
-   await document.documentElement.requestFullscreen()
- }else{
-   await document.exitFullscreen()
- }
-
- setTimeout(()=>{
-   setHeight()
-   applyScale()
- },300)
+ if(!document.fullscreenElement)
+  document.documentElement.requestFullscreen()
+ else
+  document.exitFullscreen()
 }
 
-/* DRAG */
+/* ===== DRAG ===== */
 document.querySelectorAll(".b").forEach(b=>{
 
 let active=false,ox=0,oy=0
@@ -183,6 +164,7 @@ if(now-last<300){
 last=now
 }
 
+/* EXIT EDIT */
 document.addEventListener("click",e=>{
 if(!b.contains(e.target)){
  b.classList.remove("edit")
