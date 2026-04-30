@@ -2,10 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Double Tap Edit Fix</title>
+<title>Stable Full App UI</title>
 
 <style>
-  * { box-sizing: border-box; }
+  * {
+    box-sizing: border-box;
+  }
 
   body {
     margin: 0;
@@ -13,30 +15,37 @@
     background: black;
   }
 
+  /* ===== START ===== */
   #start {
     position: fixed;
     inset: 0;
     background: black;
     color: white;
+
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 22px;
-    z-index: 99999;
+
+    font-size: 24px;
+    z-index: 999999;
   }
 
+  /* ===== MAIN ===== */
   #container {
     width: 100vw;
     height: 100vh;
     position: relative;
+    background: black;
   }
 
+  /* IMAGE NO CROP */
   #bg {
     width: 100%;
     height: 100%;
     object-fit: contain;
   }
 
+  /* ===== BUTTONS ===== */
   .btn {
     position: absolute;
     z-index: 10;
@@ -65,17 +74,38 @@
   .editing {
     background: orange !important;
   }
+
+  /* ===== FULLSCREEN BUTTON ALWAYS SAFE ===== */
+  #fsBtn {
+    position: fixed;
+    right: 15px;
+    bottom: 15px;
+
+    width: 55px;
+    height: 55px;
+
+    border-radius: 50%;
+    border: none;
+
+    background: rgba(0,0,0,0.6);
+    color: white;
+    font-size: 20px;
+
+    z-index: 9999999;
+  }
 </style>
 </head>
 
 <body>
 
+<!-- START -->
 <div id="start">Tap to Start</div>
 
 <div id="container">
 
   <img id="bg" src="bg.jpg">
 
+  <!-- 11 BUTTONS -->
   <button class="btn" style="top:10%; left:10%;"><span>1</span></button>
   <button class="btn" style="top:10%; left:20%;"><span>2</span></button>
   <button class="btn" style="top:20%; left:10%;"><span>3</span></button>
@@ -90,8 +120,11 @@
 
 </div>
 
+<button id="fsBtn">⛶</button>
+
 <script>
 const start = document.getElementById("start");
+const fsBtn = document.getElementById("fsBtn");
 const buttons = document.querySelectorAll(".btn");
 
 /* ================= START ================= */
@@ -105,7 +138,36 @@ start.addEventListener("click", () => {
   }
 });
 
-/* ================= DRAG + DOUBLE TAP ================= */
+/* ================= FULLSCREEN BUTTON (ALWAYS WORKS) ================= */
+fsBtn.addEventListener("click", async () => {
+  try {
+    if (!document.fullscreenElement) {
+      await document.documentElement.requestFullscreen();
+
+      if (screen.orientation?.lock) {
+        screen.orientation.lock("landscape").catch(()=>{});
+      }
+
+    } else {
+      await document.exitFullscreen();
+
+      if (screen.orientation?.unlock) {
+        screen.orientation.unlock();
+      }
+    }
+  } catch (e) {
+    console.log(e);
+  }
+});
+
+/* ================= RESTORE AFTER HOME / TAB SWITCH ================= */
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") {
+    fsBtn.style.display = "block";
+  }
+});
+
+/* ================= DRAG + RENAME ================= */
 buttons.forEach(btn => {
   const text = btn.querySelector("span");
 
@@ -114,8 +176,8 @@ buttons.forEach(btn => {
   let offsetY = 0;
 
   /* ===== DRAG ===== */
-  btn.addEventListener("touchstart", startDrag, {passive:false});
   btn.addEventListener("mousedown", startDrag);
+  btn.addEventListener("touchstart", startDrag, {passive:false});
 
   function startDrag(e) {
     if (btn.classList.contains("editing")) return;
@@ -130,8 +192,8 @@ buttons.forEach(btn => {
     e.preventDefault();
   }
 
-  document.addEventListener("touchmove", move, {passive:false});
   document.addEventListener("mousemove", move);
+  document.addEventListener("touchmove", move, {passive:false});
 
   function move(e) {
     if (!dragging) return;
@@ -148,20 +210,17 @@ buttons.forEach(btn => {
     e.preventDefault();
   }
 
-  document.addEventListener("touchend", stop);
   document.addEventListener("mouseup", stop);
+  document.addEventListener("touchend", stop);
 
   function stop() {
     dragging = false;
   }
 
-  /* ================= DOUBLE TAP EDIT (REAL FIX) ================= */
+  /* ================= RENAME (MOBILE + PC FIXED) ================= */
   let lastTap = 0;
 
-  btn.addEventListener("touchend", handleTap);
-  btn.addEventListener("click", handleTap); // PC support
-
-  function handleTap(e) {
+  btn.addEventListener("click", () => {
     const now = Date.now();
 
     if (now - lastTap < 350) {
@@ -169,7 +228,9 @@ buttons.forEach(btn => {
     }
 
     lastTap = now;
-  }
+  });
+
+  btn.addEventListener("dblclick", enableEdit);
 
   function enableEdit() {
     btn.classList.add("editing");
