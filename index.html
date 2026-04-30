@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Fullscreen Stable UI Fix</title>
+<title>Start Auto App Mode</title>
 
 <style>
   * { box-sizing: border-box; }
@@ -13,7 +13,22 @@
     background: black;
   }
 
-  /* ===== MAIN WRAPPER ===== */
+  /* ===== START SCREEN ===== */
+  #start {
+    position: fixed;
+    inset: 0;
+    background: black;
+    color: white;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 24px;
+    z-index: 99999;
+  }
+
+  /* ===== MAIN ===== */
   #container {
     width: 100vw;
     height: 100vh;
@@ -21,18 +36,17 @@
     background: black;
   }
 
-  /* ===== IMAGE (NO CROP ALWAYS) ===== */
+  /* IMAGE NO CROP */
   #bg {
     width: 100%;
     height: 100%;
     object-fit: contain;
-    display: block;
   }
 
-  /* ===== BUTTONS (IMPORTANT: ALWAYS ABOVE IMAGE) ===== */
+  /* buttons always visible */
   .dragBtn {
     position: absolute;
-    z-index: 10; /* 🔥 keep above image */
+    z-index: 10;
 
     width: clamp(45px, 6vw, 80px);
     height: clamp(45px, 6vw, 80px);
@@ -43,41 +57,21 @@
     background: #4CAF50;
     color: white;
 
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
     touch-action: none;
     user-select: none;
-  }
-
-  /* fullscreen button */
-  #fsBtn {
-    position: fixed;
-    right: 15px;
-    bottom: 15px;
-
-    width: 55px;
-    height: 55px;
-
-    border-radius: 50%;
-    border: none;
-
-    background: rgba(0,0,0,0.6);
-    color: white;
-    font-size: 20px;
-
-    z-index: 99999;
   }
 </style>
 </head>
 
 <body>
 
+<!-- START SCREEN -->
+<div id="start">Tap to Start</div>
+
 <div id="container">
+
   <img id="bg" src="bg.jpg">
 
-  <!-- BUTTONS -->
   <button class="dragBtn" style="top:10%; left:10%;">1</button>
   <button class="dragBtn" style="top:10%; left:20%;">2</button>
   <button class="dragBtn" style="top:20%; left:10%;">3</button>
@@ -89,38 +83,43 @@
   <button class="dragBtn" style="top:50%; left:10%;">9</button>
   <button class="dragBtn" style="top:50%; left:20%;">10</button>
   <button class="dragBtn" style="top:60%; left:10%;">11</button>
+
 </div>
 
-<button id="fsBtn">⛶</button>
-
 <script>
-const fsBtn = document.getElementById("fsBtn");
+const start = document.getElementById("start");
 const container = document.getElementById("container");
 const buttons = document.querySelectorAll(".dragBtn");
 
-/* ===== FULLSCREEN SAFE ===== */
-async function toggleFS() {
+/* ================= START FLOW ================= */
+start.addEventListener("click", async () => {
+
+  start.style.display = "none";
+
   try {
-    if (!document.fullscreenElement) {
-      await document.documentElement.requestFullscreen();
-    } else {
-      await document.exitFullscreen();
+    // fullscreen
+    await document.documentElement.requestFullscreen();
+
+    // landscape lock (Android only)
+    if (screen.orientation && screen.orientation.lock) {
+      await screen.orientation.lock("landscape");
     }
-  } catch (e) {}
-}
 
-fsBtn.addEventListener("click", toggleFS);
+  } catch (e) {
+    console.log(e);
+  }
+});
 
-/* ===== DRAG FIX (WORKS IN FULLSCREEN) ===== */
+/* ================= DRAG ================= */
 buttons.forEach(btn => {
   let dragging = false;
   let offsetX = 0;
   let offsetY = 0;
 
-  btn.addEventListener("mousedown", start);
-  btn.addEventListener("touchstart", start, {passive:false});
+  btn.addEventListener("mousedown", startDrag);
+  btn.addEventListener("touchstart", startDrag, {passive:false});
 
-  function start(e) {
+  function startDrag(e) {
     dragging = true;
 
     const p = e.touches ? e.touches[0] : e;
