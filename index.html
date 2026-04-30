@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Simple App</title>
+<title>Stable App</title>
 
 <style>
 body{
@@ -11,7 +11,7 @@ body{
  background:black;
 }
 
-/* FULLSCREEN BUTTON ONLY */
+/* FULLSCREEN BUTTON */
 #fsBtn{
  position:fixed;
  right:15px;
@@ -32,7 +32,7 @@ body{
  height:100vh;
 }
 
-/* NO CROP IMAGE */
+/* IMAGE NO CROP */
 #bg{
  width:100%;
  height:100%;
@@ -85,7 +85,7 @@ body{
 
 <script>
 
-/* FULLSCREEN BUTTON ONLY */
+/* FULLSCREEN */
 fsBtn.onclick=async()=>{
  if(!document.fullscreenElement)
   document.documentElement.requestFullscreen()
@@ -116,23 +116,35 @@ b.style.top=(p.clientY-r.top-oy)/r.height*100+"%"
 
 b.ontouchend=()=>drag=0
 
-/* DOUBLE TAP EDIT */
+/* DOUBLE TAP EDIT + CURSOR FIX */
 let last=0
+
 b.onclick=()=>{
 let now=Date.now()
+
 if(now-last<300){
-b.classList.add("edit")
-t.contentEditable=true
-t.focus()
+  b.classList.add("edit")
+  t.contentEditable=true
+  t.focus()
+
+  // ✅ CURSOR GO TO END (RIGHT SIDE FIX)
+  let range=document.createRange()
+  range.selectNodeContents(t)
+  range.collapse(false)
+
+  let sel=window.getSelection()
+  sel.removeAllRanges()
+  sel.addRange(range)
 }
+
 last=now
 }
 
 /* EXIT EDIT */
 document.addEventListener("click",e=>{
 if(!b.contains(e.target)){
-b.classList.remove("edit")
-t.contentEditable=false
+  b.classList.remove("edit")
+  t.contentEditable=false
 }
 })
 
