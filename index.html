@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Final Stable</title>
+<title>Scaled App</title>
 
 <style>
 html,body{
@@ -29,6 +29,7 @@ html,body{
 #c{
  position:relative;
  width:100vw;
+ transform-origin:top left;
 }
 
 /* IMAGE */
@@ -39,11 +40,11 @@ html,body{
  background:black;
 }
 
-/* ✅ BUTTON SIZE FIX (vh not vw) */
+/* BIGGER BUTTONS (BASE SIZE) */
 .b{
  position:absolute;
- width:clamp(40px,8vh,70px);
- height:clamp(40px,8vh,70px);
+ width:80px;
+ height:80px;
 
  border-radius:50%;
  border:0;
@@ -58,7 +59,11 @@ html,body{
  touch-action:none;
 }
 
-.b span{outline:none}
+.b span{
+ outline:none;
+ font-size:20px;
+}
+
 .edit{background:orange!important}
 </style>
 </head>
@@ -87,21 +92,40 @@ html,body{
 
 <script>
 
-/* FORCE REAL HEIGHT */
+/* ===== HEIGHT FIX ===== */
 function setHeight(){
  c.style.height = window.innerHeight + "px"
 }
 setHeight()
 window.addEventListener("resize", setHeight)
 
+/* ===== SCALE FIX (YOUR IDEA, BUT SMART) ===== */
+function applyScale(){
+ let scale = window.innerHeight / document.documentElement.clientHeight
+
+ // increase a bit so it matches fullscreen look
+ if(!document.fullscreenElement){
+   c.style.transform = "scale(1.15)"  // tweak this if needed (1.1 ~ 1.2)
+ }else{
+   c.style.transform = "scale(1)"
+ }
+}
+
+applyScale()
+window.addEventListener("resize", applyScale)
+
 /* FULLSCREEN */
 fsBtn.onclick=async()=>{
- if(!document.fullscreenElement)
-  document.documentElement.requestFullscreen()
- else
-  document.exitFullscreen()
+ if(!document.fullscreenElement){
+   await document.documentElement.requestFullscreen()
+ }else{
+   await document.exitFullscreen()
+ }
 
- setTimeout(setHeight,300)
+ setTimeout(()=>{
+   setHeight()
+   applyScale()
+ },300)
 }
 
 /* DRAG */
@@ -167,6 +191,7 @@ if(!b.contains(e.target)){
 })
 
 })
+
 </script>
 
 </body>
