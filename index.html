@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Portrait App</title>
+<title>Portrait No Crop App</title>
 
 <style>
 body{
@@ -11,17 +11,19 @@ body{
  background:black;
 }
 
+/* START SCREEN */
 #start{
  position:fixed;
  inset:0;
  display:flex;
- align-items:center;
  justify-content:center;
- color:white;
+ align-items:center;
  background:black;
+ color:white;
  z-index:9999;
 }
 
+/* FULLSCREEN BUTTON */
 #fsBtn{
  position:fixed;
  right:15px;
@@ -35,18 +37,22 @@ body{
  z-index:9999;
 }
 
+/* CONTAINER */
 #c{
  position:relative;
  width:100vw;
  height:100vh;
 }
 
+/* NO CROPPING IMAGE */
 #bg{
  width:100%;
  height:100%;
- object-fit:cover; /* portrait image fills screen */
+ object-fit:contain;
+ background:black;
 }
 
+/* BUTTONS */
 .b{
  position:absolute;
  width:60px;
@@ -56,9 +62,10 @@ body{
  background:#4caf50;
  color:white;
  display:flex;
- align-items:center;
  justify-content:center;
+ align-items:center;
  touch-action:none;
+ user-select:none;
 }
 
 .b span{outline:none}
@@ -91,7 +98,7 @@ body{
 
 <script>
 
-/* START + FULLSCREEN ONLY */
+/* START + FULLSCREEN */
 start.onclick=()=>{
  start.remove()
  document.documentElement.requestFullscreen?.()
@@ -104,7 +111,7 @@ fsBtn.onclick=()=>{
   document.exitFullscreen()
 }
 
-/* DRAG */
+/* DRAG SYSTEM */
 let drag=0,ox=0,oy=0
 
 document.querySelectorAll(".b").forEach(b=>{
