@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Stable App Mode Fullscreen</title>
+<title>App Mode With Rename Fixed</title>
 
 <style>
   * { box-sizing: border-box; }
@@ -13,7 +13,7 @@
     background: black;
   }
 
-  /* ===== START SCREEN ===== */
+  /* START SCREEN */
   #start {
     position: fixed;
     inset: 0;
@@ -28,7 +28,7 @@
     z-index: 99999;
   }
 
-  /* ===== MAIN ===== */
+  /* MAIN */
   #container {
     width: 100vw;
     height: 100vh;
@@ -36,14 +36,14 @@
     background: black;
   }
 
-  /* ===== IMAGE NO CROP ===== */
+  /* IMAGE NO CROP */
   #bg {
     width: 100%;
     height: 100%;
     object-fit: contain;
   }
 
-  /* ===== BUTTONS ALWAYS VISIBLE ===== */
+  /* BUTTONS */
   .dragBtn {
     position: absolute;
     z-index: 10;
@@ -61,8 +61,16 @@
     align-items: center;
     justify-content: center;
 
-    touch-action: none;
     user-select: none;
+    touch-action: none;
+  }
+
+  .dragBtn span {
+    outline: none;
+  }
+
+  .editing {
+    background: orange !important;
   }
 
   /* fullscreen button */
@@ -88,25 +96,24 @@
 
 <body>
 
-<!-- START -->
 <div id="start">Tap to Start</div>
 
 <div id="container">
 
   <img id="bg" src="bg.jpg">
 
-  <!-- 11 BUTTONS -->
-  <button class="dragBtn" style="top:10%; left:10%;">1</button>
-  <button class="dragBtn" style="top:10%; left:20%;">2</button>
-  <button class="dragBtn" style="top:20%; left:10%;">3</button>
-  <button class="dragBtn" style="top:20%; left:20%;">4</button>
-  <button class="dragBtn" style="top:30%; left:10%;">5</button>
-  <button class="dragBtn" style="top:30%; left:20%;">6</button>
-  <button class="dragBtn" style="top:40%; left:10%;">7</button>
-  <button class="dragBtn" style="top:40%; left:20%;">8</button>
-  <button class="dragBtn" style="top:50%; left:10%;">9</button>
-  <button class="dragBtn" style="top:50%; left:20%;">10</button>
-  <button class="dragBtn" style="top:60%; left:10%;">11</button>
+  <!-- BUTTONS (WITH TEXT SPANS FOR RENAME) -->
+  <button class="dragBtn" style="top:10%; left:10%;"><span>1</span></button>
+  <button class="dragBtn" style="top:10%; left:20%;"><span>2</span></button>
+  <button class="dragBtn" style="top:20%; left:10%;"><span>3</span></button>
+  <button class="dragBtn" style="top:20%; left:20%;"><span>4</span></button>
+  <button class="dragBtn" style="top:30%; left:10%;"><span>5</span></button>
+  <button class="dragBtn" style="top:30%; left:20%;"><span>6</span></button>
+  <button class="dragBtn" style="top:40%; left:10%;"><span>7</span></button>
+  <button class="dragBtn" style="top:40%; left:20%;"><span>8</span></button>
+  <button class="dragBtn" style="top:50%; left:10%;"><span>9</span></button>
+  <button class="dragBtn" style="top:50%; left:20%;"><span>10</span></button>
+  <button class="dragBtn" style="top:60%; left:10%;"><span>11</span></button>
 
 </div>
 
@@ -114,33 +121,26 @@
 
 <script>
 const start = document.getElementById("start");
-const fsBtn = document.getElementById("fsBtn");
 const buttons = document.querySelectorAll(".dragBtn");
 
-/* ================= START FLOW (STABLE) ================= */
+/* ================= START ================= */
 start.addEventListener("click", () => {
 
   start.style.display = "none";
 
-  // fullscreen (must be direct gesture)
-  const request = document.documentElement.requestFullscreen?.();
+  const fs = document.documentElement.requestFullscreen?.();
 
-  if (request && request.then) {
-    request.then(() => {
-      // orientation lock (Android only)
+  if (fs && fs.then) {
+    fs.then(() => {
       if (screen.orientation && screen.orientation.lock) {
-        screen.orientation.lock("landscape").catch(() => {});
+        screen.orientation.lock("landscape").catch(()=>{});
       }
-    }).catch(() => {});
-  } else {
-    if (screen.orientation && screen.orientation.lock) {
-      screen.orientation.lock("landscape").catch(() => {});
-    }
+    }).catch(()=>{});
   }
 });
 
 /* ================= FULLSCREEN BUTTON ================= */
-fsBtn.addEventListener("click", () => {
+document.getElementById("fsBtn").addEventListener("click", () => {
   if (!document.fullscreenElement) {
     document.documentElement.requestFullscreen();
   } else {
@@ -148,16 +148,21 @@ fsBtn.addEventListener("click", () => {
   }
 });
 
-/* ================= DRAG ================= */
+/* ================= DRAG + RENAME ================= */
 buttons.forEach(btn => {
+  const text = btn.querySelector("span");
+
   let dragging = false;
   let offsetX = 0;
   let offsetY = 0;
 
-  btn.addEventListener("mousedown", start);
-  btn.addEventListener("touchstart", start, {passive:false});
+  /* ===== DRAG START ===== */
+  btn.addEventListener("mousedown", startDrag);
+  btn.addEventListener("touchstart", startDrag, {passive:false});
 
-  function start(e) {
+  function startDrag(e) {
+    if (btn.classList.contains("editing")) return;
+
     dragging = true;
 
     const p = e.touches ? e.touches[0] : e;
@@ -169,6 +174,7 @@ buttons.forEach(btn => {
     e.preventDefault();
   }
 
+  /* ===== MOVE ===== */
   document.addEventListener("mousemove", move);
   document.addEventListener("touchmove", move, {passive:false});
 
@@ -193,6 +199,35 @@ buttons.forEach(btn => {
   function stop() {
     dragging = false;
   }
+
+  /* ================= RENAME (FIXED) ================= */
+  function enableEdit() {
+    btn.classList.add("editing");
+    text.contentEditable = "true";
+    text.focus();
+
+    // move cursor to end
+    const range = document.createRange();
+    range.selectNodeContents(text);
+    range.collapse(false);
+
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+  }
+
+  function disableEdit() {
+    btn.classList.remove("editing");
+    text.contentEditable = "false";
+  }
+
+  btn.addEventListener("dblclick", enableEdit);
+
+  document.addEventListener("click", (e) => {
+    if (!btn.contains(e.target)) {
+      disableEdit();
+    }
+  });
 });
 </script>
 
