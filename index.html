@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Ultimate Stable App</title>
+<title>Final Stable</title>
 
 <style>
 html,body{
@@ -39,11 +39,11 @@ html,body{
  background:black;
 }
 
-/* BUTTONS */
+/* ✅ BUTTON SIZE FIX (vh not vw) */
 .b{
  position:absolute;
- width:clamp(40px,10vw,70px);
- height:clamp(40px,10vw,70px);
+ width:clamp(40px,8vh,70px);
+ height:clamp(40px,8vh,70px);
 
  border-radius:50%;
  border:0;
@@ -87,24 +87,24 @@ html,body{
 
 <script>
 
-/* ===== FORCE REAL HEIGHT (KEY FIX) ===== */
+/* FORCE REAL HEIGHT */
 function setHeight(){
- document.getElementById("c").style.height = window.innerHeight + "px"
+ c.style.height = window.innerHeight + "px"
 }
 setHeight()
 window.addEventListener("resize", setHeight)
 
-/* ===== FULLSCREEN ===== */
+/* FULLSCREEN */
 fsBtn.onclick=async()=>{
  if(!document.fullscreenElement)
   document.documentElement.requestFullscreen()
  else
   document.exitFullscreen()
 
- setTimeout(setHeight,300) // fix after fullscreen change
+ setTimeout(setHeight,300)
 }
 
-/* ===== POINTER DRAG ===== */
+/* DRAG */
 document.querySelectorAll(".b").forEach(b=>{
 
 let active=false,ox=0,oy=0
@@ -114,7 +114,7 @@ b.addEventListener("pointerdown",(e)=>{
  if(b.classList.contains("edit"))return
 
  const r=b.getBoundingClientRect()
- const c=document.getElementById("c").getBoundingClientRect()
+ const cRect=c.getBoundingClientRect()
 
  ox=e.clientX-r.left
  oy=e.clientY-r.top
@@ -126,20 +126,19 @@ b.addEventListener("pointerdown",(e)=>{
 b.addEventListener("pointermove",(e)=>{
  if(!active)return
 
- const c=document.getElementById("c").getBoundingClientRect()
+ const cRect=c.getBoundingClientRect()
 
- let x=e.clientX-c.left-ox
- let y=e.clientY-c.top-oy
+ let x=e.clientX-cRect.left-ox
+ let y=e.clientY-cRect.top-oy
 
- b.style.left=(x/c.width)*100+"%"
- b.style.top=(y/c.height)*100+"%"
+ b.style.left=(x/cRect.width)*100+"%"
+ b.style.top=(y/cRect.height)*100+"%"
 })
 
 b.addEventListener("pointerup",()=>active=false)
 
-/* ===== DOUBLE TAP / CLICK EDIT ===== */
+/* EDIT */
 let last=0
-
 b.onclick=()=>{
 let now=Date.now()
 
@@ -160,7 +159,6 @@ if(now-last<300){
 last=now
 }
 
-/* EXIT EDIT */
 document.addEventListener("click",e=>{
 if(!b.contains(e.target)){
  b.classList.remove("edit")
