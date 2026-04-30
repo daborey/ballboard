@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Fixed Scale App</title>
+<title>Fixed Size App</title>
 
 <style>
 html,body{
@@ -29,10 +29,10 @@ html,body{
 #c{
  position:relative;
  width:100vw;
- transform-origin:top left;
+ height:100vh;
 }
 
-/* IMAGE */
+/* BACKGROUND */
 #bg{
  width:100%;
  height:100%;
@@ -40,11 +40,11 @@ html,body{
  background:black;
 }
 
-/* BUTTONS */
+/* 🔥 FIXED BUTTON SIZE */
 .b{
  position:absolute;
- width:80px;
- height:80px;
+ width:85px;      /* fixed */
+ height:85px;     /* fixed */
 
  border-radius:50%;
  border:0;
@@ -59,9 +59,10 @@ html,body{
  touch-action:none;
 }
 
+/* 🔥 FIXED TEXT SIZE */
 .b span{
+ font-size:20px;  /* fixed */
  outline:none;
- font-size:20px;
 }
 
 .edit{background:orange!important}
@@ -92,16 +93,7 @@ html,body{
 
 <script>
 
-/* ===== FIX HEIGHT ===== */
-function setHeight(){
- c.style.height = window.innerHeight + "px"
-}
-setHeight()
-
-/* ===== APPLY SCALE ONCE (ONLY BEFORE FULLSCREEN) ===== */
-c.style.transform = "scale(1.15)"   // 👈 adjust if needed (1.1 ~ 1.2)
-
-/* ===== FULLSCREEN (NO SCALE CHANGE) ===== */
+/* FULLSCREEN */
 fsBtn.onclick=async()=>{
  if(!document.fullscreenElement)
   document.documentElement.requestFullscreen()
@@ -109,7 +101,7 @@ fsBtn.onclick=async()=>{
   document.exitFullscreen()
 }
 
-/* ===== DRAG ===== */
+/* DRAG */
 document.querySelectorAll(".b").forEach(b=>{
 
 let active=false,ox=0,oy=0
@@ -173,7 +165,6 @@ if(!b.contains(e.target)){
 })
 
 })
-
 </script>
 
 </body>
