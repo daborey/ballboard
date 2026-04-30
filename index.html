@@ -2,90 +2,151 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Mini App</title>
+<title>Portrait App</title>
 
 <style>
-body{margin:0;overflow:hidden;background:#000}
-#start,#fs{position:fixed;z-index:9999}
-#start{inset:0;display:flex;align-items:center;justify-content:center;color:#fff}
-#fs{right:10px;bottom:10px;width:50px;height:50px;border-radius:50%;background:#0008;color:#fff}
+body{
+ margin:0;
+ overflow:hidden;
+ background:black;
+}
 
-#c{position:relative;width:100vw;height:100vh}
-#bg{width:100%;height:100%;object-fit:cover}
+#start{
+ position:fixed;
+ inset:0;
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ color:white;
+ background:black;
+ z-index:9999;
+}
 
-.b{position:absolute;width:60px;height:60px;border-radius:50%;border:0;background:#4caf50;color:#fff;touch-action:none;display:flex;align-items:center;justify-content:center}
+#fsBtn{
+ position:fixed;
+ right:15px;
+ bottom:15px;
+ width:55px;
+ height:55px;
+ border-radius:50%;
+ border:none;
+ background:#0008;
+ color:white;
+ z-index:9999;
+}
+
+#c{
+ position:relative;
+ width:100vw;
+ height:100vh;
+}
+
+#bg{
+ width:100%;
+ height:100%;
+ object-fit:cover; /* portrait image fills screen */
+}
+
+.b{
+ position:absolute;
+ width:60px;
+ height:60px;
+ border-radius:50%;
+ border:0;
+ background:#4caf50;
+ color:white;
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ touch-action:none;
+}
+
 .b span{outline:none}
-.e{background:orange}
+.edit{background:orange!important}
 </style>
 </head>
 
 <body>
 
 <div id="start">Tap to Start</div>
-<button id="fs">⛶</button>
+<button id="fsBtn">⛶</button>
 
 <div id="c">
-  <img id="bg" src="bg.jpg">
 
-  <button class="b" style="top:10%;left:10%"><span>1</span></button>
-  <button class="b" style="top:10%;left:20%"><span>2</span></button>
-  <button class="b" style="top:20%;left:10%"><span>3</span></button>
-  <button class="b" style="top:20%;left:20%"><span>4</span></button>
-  <button class="b" style="top:30%;left:10%"><span>5</span></button>
-  <button class="b" style="top:30%;left:20%"><span>6</span></button>
-  <button class="b" style="top:40%;left:10%"><span>7</span></button>
-  <button class="b" style="top:40%;left:20%"><span>8</span></button>
-  <button class="b" style="top:50%;left:10%"><span>9</span></button>
-  <button class="b" style="top:50%;left:20%"><span>10</span></button>
-  <button class="b" style="top:60%;left:10%"><span>11</span></button>
+<img id="bg" src="bg.jpg">
+
+<button class="b" style="top:10%;left:10%"><span>1</span></button>
+<button class="b" style="top:10%;left:20%"><span>2</span></button>
+<button class="b" style="top:20%;left:10%"><span>3</span></button>
+<button class="b" style="top:20%;left:20%"><span>4</span></button>
+<button class="b" style="top:30%;left:10%"><span>5</span></button>
+<button class="b" style="top:30%;left:20%"><span>6</span></button>
+<button class="b" style="top:40%;left:10%"><span>7</span></button>
+<button class="b" style="top:40%;left:20%"><span>8</span></button>
+<button class="b" style="top:50%;left:10%"><span>9</span></button>
+<button class="b" style="top:50%;left:20%"><span>10</span></button>
+<button class="b" style="top:60%;left:10%"><span>11</span></button>
+
 </div>
 
 <script>
-start.onclick=()=>{start.remove();document.documentElement.requestFullscreen?.()}
 
-fs.onclick=async()=>{
- if(!document.fullscreenElement) await document.documentElement.requestFullscreen()
- else document.exitFullscreen()
+/* START + FULLSCREEN ONLY */
+start.onclick=()=>{
+ start.remove()
+ document.documentElement.requestFullscreen?.()
 }
 
-let d=0,x=0,y=0
+fsBtn.onclick=()=>{
+ if(!document.fullscreenElement)
+  document.documentElement.requestFullscreen()
+ else
+  document.exitFullscreen()
+}
+
+/* DRAG */
+let drag=0,ox=0,oy=0
 
 document.querySelectorAll(".b").forEach(b=>{
- let t=b.querySelector("span")
+const t=b.querySelector("span")
 
- b.ontouchstart=e=>{
-  if(b.classList.contains("e"))return
-  let p=e.touches[0]
-  x=p.clientX-b.offsetLeft
-  y=p.clientY-b.offsetTop
-  d=1
- }
+b.ontouchstart=e=>{
+if(b.classList.contains("edit"))return
+let p=e.touches[0]
+ox=p.clientX-b.offsetLeft
+oy=p.clientY-b.offsetTop
+drag=1
+}
 
- b.ontouchend=()=>d=0
- b.ontouchmove=e=>{
-  if(!d)return
-  let p=e.touches[0],c=document.getElementById("c").getBoundingClientRect()
-  b.style.left=(p.clientX-c.left-x)/c.width*100+"%"
-  b.style.top=(p.clientY-c.top-y)/c.height*100+"%"
- }
+b.ontouchmove=e=>{
+if(!drag)return
+let p=e.touches[0],r=c.getBoundingClientRect()
+b.style.left=(p.clientX-r.left-ox)/r.width*100+"%"
+b.style.top=(p.clientY-r.top-oy)/r.height*100+"%"
+}
 
- let last=0
- b.onclick=()=>{
-  let n=Date.now()
-  if(n-last<300){
-    b.classList.add("e")
-    t.contentEditable=true
-    t.focus()
-  }
-  last=n
- }
+b.ontouchend=()=>drag=0
 
- document.addEventListener("click",e=>{
-  if(!b.contains(e.target)){
-    b.classList.remove("e")
-    t.contentEditable=false
-  }
+/* DOUBLE TAP EDIT */
+let last=0
+b.onclick=()=>{
+let now=Date.now()
+if(now-last<300){
+b.classList.add("edit")
+t.contentEditable=true
+t.focus()
+}
+last=now
+}
+
+/* EXIT EDIT */
+document.addEventListener("click",e=>{
+if(!b.contains(e.target)){
+b.classList.remove("edit")
+t.contentEditable=false
+}
 })
+
 })
 </script>
 
