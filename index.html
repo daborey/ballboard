@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Stable Full App UI</title>
+<title>Stable Drag + Rename + Fullscreen</title>
 
 <style>
   * {
@@ -15,7 +15,7 @@
     background: black;
   }
 
-  /* ===== START ===== */
+  /* ===== START SCREEN ===== */
   #start {
     position: fixed;
     inset: 0;
@@ -30,12 +30,11 @@
     z-index: 999999;
   }
 
-  /* ===== MAIN ===== */
+  /* ===== CONTAINER ===== */
   #container {
     width: 100vw;
     height: 100vh;
     position: relative;
-    background: black;
   }
 
   /* IMAGE NO CROP */
@@ -63,8 +62,8 @@
     align-items: center;
     justify-content: center;
 
-    touch-action: none;
     user-select: none;
+    touch-action: none;
   }
 
   .btn span {
@@ -75,7 +74,7 @@
     background: orange !important;
   }
 
-  /* ===== FULLSCREEN BUTTON ALWAYS SAFE ===== */
+  /* ===== FULLSCREEN BUTTON ===== */
   #fsBtn {
     position: fixed;
     right: 15px;
@@ -138,7 +137,7 @@ start.addEventListener("click", () => {
   }
 });
 
-/* ================= FULLSCREEN BUTTON (ALWAYS WORKS) ================= */
+/* ================= FULLSCREEN BUTTON ================= */
 fsBtn.addEventListener("click", async () => {
   try {
     if (!document.fullscreenElement) {
@@ -147,24 +146,10 @@ fsBtn.addEventListener("click", async () => {
       if (screen.orientation?.lock) {
         screen.orientation.lock("landscape").catch(()=>{});
       }
-
     } else {
       await document.exitFullscreen();
-
-      if (screen.orientation?.unlock) {
-        screen.orientation.unlock();
-      }
     }
-  } catch (e) {
-    console.log(e);
-  }
-});
-
-/* ================= RESTORE AFTER HOME / TAB SWITCH ================= */
-document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible") {
-    fsBtn.style.display = "block";
-  }
+  } catch (e) {}
 });
 
 /* ================= DRAG + RENAME ================= */
@@ -176,8 +161,8 @@ buttons.forEach(btn => {
   let offsetY = 0;
 
   /* ===== DRAG ===== */
-  btn.addEventListener("mousedown", startDrag);
   btn.addEventListener("touchstart", startDrag, {passive:false});
+  btn.addEventListener("mousedown", startDrag);
 
   function startDrag(e) {
     if (btn.classList.contains("editing")) return;
@@ -192,8 +177,8 @@ buttons.forEach(btn => {
     e.preventDefault();
   }
 
-  document.addEventListener("mousemove", move);
   document.addEventListener("touchmove", move, {passive:false});
+  document.addEventListener("mousemove", move);
 
   function move(e) {
     if (!dragging) return;
@@ -217,10 +202,12 @@ buttons.forEach(btn => {
     dragging = false;
   }
 
-  /* ================= RENAME (MOBILE + PC FIXED) ================= */
+  /* ================= SAFE DOUBLE TAP ================= */
   let lastTap = 0;
 
   btn.addEventListener("click", () => {
+    if (dragging) return;
+
     const now = Date.now();
 
     if (now - lastTap < 350) {
@@ -234,6 +221,7 @@ buttons.forEach(btn => {
 
   function enableEdit() {
     btn.classList.add("editing");
+
     text.contentEditable = "true";
     text.focus();
 
@@ -246,10 +234,23 @@ buttons.forEach(btn => {
     sel.addRange(range);
   }
 
-  document.addEventListener("click", (e) => {
-    if (!btn.contains(e.target)) {
-      btn.classList.remove("editing");
-      text.contentEditable = "false";
+  function disableEdit() {
+    btn.classList.remove("editing");
+    text.contentEditable = "false";
+  }
+
+  document.addEventListener("touchstart", (e) => {
+    if (!btn.contains(e.target)) disableEdit();
+  });
+
+  document.addEventListener("mousedown", (e) => {
+    if (!btn.contains(e.target)) disableEdit();
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      disableEdit();
+      window.getSelection()?.removeAllRanges();
     }
   });
 
