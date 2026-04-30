@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Force CSS Fix</title>
+<title>Final +5px Force Fix</title>
 
 <style>
 html,body{
@@ -11,6 +11,7 @@ html,body{
  background:black;
 }
 
+/* FULLSCREEN BUTTON */
 #fsBtn{
  position:fixed;
  right:15px;
@@ -24,12 +25,14 @@ html,body{
  z-index:9999;
 }
 
+/* CONTAINER */
 #c{
  position:relative;
  width:100vw;
  height:100vh;
 }
 
+/* BACKGROUND (NO CHANGE) */
 #bg{
  width:100%;
  height:100%;
@@ -37,28 +40,36 @@ html,body{
  background:black;
 }
 
-/* NORMAL SIZE */
+/* =========================
+   BEFORE FULLSCREEN (+5px)
+========================= */
 .b{
  position:absolute;
- width:85px;
- height:85px;
+
+ width:90px;
+ height:90px;
+
  border-radius:50%;
  border:0;
  background:#4caf50;
  color:white;
+
  display:flex;
  justify-content:center;
  align-items:center;
+
  user-select:none;
  touch-action:none;
 }
 
 .b span{
- font-size:20px;
+ font-size:22px;
  outline:none;
 }
 
-/* 🔥 FORCE SMALLER AFTER FULLSCREEN */
+/* =========================
+   AFTER FULLSCREEN (FORCE SMALL)
+========================= */
 body.fullscreen .b{
  width:65px !important;
  height:65px !important;
@@ -96,7 +107,7 @@ body.fullscreen .b span{
 
 <script>
 
-/* FULLSCREEN */
+/* ===== FULLSCREEN TOGGLE ===== */
 fsBtn.onclick=async()=>{
  if(!document.fullscreenElement){
   await document.documentElement.requestFullscreen()
@@ -105,7 +116,7 @@ fsBtn.onclick=async()=>{
  }
 }
 
-/* ADD / REMOVE CLASS */
+/* ===== FORCE CLASS ===== */
 document.addEventListener("fullscreenchange",()=>{
  if(document.fullscreenElement){
   document.body.classList.add("fullscreen")
@@ -114,7 +125,7 @@ document.addEventListener("fullscreenchange",()=>{
  }
 })
 
-/* DRAG + EDIT (same as before) */
+/* ===== DRAG SYSTEM ===== */
 document.querySelectorAll(".b").forEach(b=>{
 
 let active=false,ox=0,oy=0
@@ -147,8 +158,9 @@ b.addEventListener("pointermove",(e)=>{
 
 b.addEventListener("pointerup",()=>active=false)
 
-/* EDIT */
+/* ===== DOUBLE TAP EDIT ===== */
 let last=0
+
 b.onclick=()=>{
 let now=Date.now()
 
@@ -169,6 +181,7 @@ if(now-last<300){
 last=now
 }
 
+/* EXIT EDIT MODE */
 document.addEventListener("click",e=>{
 if(!b.contains(e.target)){
  b.classList.remove("edit")
@@ -177,6 +190,7 @@ if(!b.contains(e.target)){
 })
 
 })
+
 </script>
 
 </body>
