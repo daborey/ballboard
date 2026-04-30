@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Fullscreen Size Control</title>
+<title>Force CSS Fix</title>
 
 <style>
 html,body{
@@ -11,7 +11,6 @@ html,body{
  background:black;
 }
 
-/* FULLSCREEN BUTTON */
 #fsBtn{
  position:fixed;
  right:15px;
@@ -25,14 +24,12 @@ html,body{
  z-index:9999;
 }
 
-/* CONTAINER */
 #c{
  position:relative;
  width:100vw;
  height:100vh;
 }
 
-/* BACKGROUND */
 #bg{
  width:100%;
  height:100%;
@@ -40,21 +37,18 @@ html,body{
  background:black;
 }
 
-/* ===== NORMAL SIZE ===== */
+/* NORMAL SIZE */
 .b{
  position:absolute;
  width:85px;
  height:85px;
-
  border-radius:50%;
  border:0;
  background:#4caf50;
  color:white;
-
  display:flex;
  justify-content:center;
  align-items:center;
-
  user-select:none;
  touch-action:none;
 }
@@ -64,14 +58,14 @@ html,body{
  outline:none;
 }
 
-/* ===== SMALLER AFTER FULLSCREEN ===== */
-.fullscreen .b{
- width:70px;
- height:70px;
+/* 🔥 FORCE SMALLER AFTER FULLSCREEN */
+body.fullscreen .b{
+ width:65px !important;
+ height:65px !important;
 }
 
-.fullscreen .b span{
- font-size:16px;
+body.fullscreen .b span{
+ font-size:15px !important;
 }
 
 .edit{background:orange!important}
@@ -102,7 +96,7 @@ html,body{
 
 <script>
 
-/* FULLSCREEN TOGGLE */
+/* FULLSCREEN */
 fsBtn.onclick=async()=>{
  if(!document.fullscreenElement){
   await document.documentElement.requestFullscreen()
@@ -111,7 +105,7 @@ fsBtn.onclick=async()=>{
  }
 }
 
-/* 🔥 DETECT FULLSCREEN CHANGE */
+/* ADD / REMOVE CLASS */
 document.addEventListener("fullscreenchange",()=>{
  if(document.fullscreenElement){
   document.body.classList.add("fullscreen")
@@ -120,7 +114,7 @@ document.addEventListener("fullscreenchange",()=>{
  }
 })
 
-/* DRAG */
+/* DRAG + EDIT (same as before) */
 document.querySelectorAll(".b").forEach(b=>{
 
 let active=false,ox=0,oy=0
@@ -175,7 +169,6 @@ if(now-last<300){
 last=now
 }
 
-/* EXIT EDIT */
 document.addEventListener("click",e=>{
 if(!b.contains(e.target)){
  b.classList.remove("edit")
